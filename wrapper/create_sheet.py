@@ -23,9 +23,7 @@ def load_sheet_data():
     parser = argparse.ArgumentParser(description='Create exercise sheet.')
     parser.add_argument('sheetinfo', type=str,
                         help='py file containing sheet information')
-    parser.add_argument('-s', '--solutionflag', type=str, default='n',
-                        help='n/y, if solution should be printed or not;\
-                        default is n')
+    parser.add_argument('-s', '--solutionflag', action='store_true')
     args = parser.parse_args()
 
     if os.path.splitext(args.sheetinfo)[1] == '.ini':
@@ -39,8 +37,8 @@ def load_sheet_data():
         raise ValueError('Filename needs to be in the <myfile.ini>!!!')
     try:
         sheetinfo['compilename']
-        if args.solutionflag == 'y':
-            sheetinfo['compilename'] += '_solution'
+        #if args.solutionflag == 'y':
+            #sheetinfo['compilename'] += '_solution'
     except KeyError:
         print('You have to specify a filename for the compiled document!')
         sys.exit()
@@ -125,7 +123,7 @@ def fill_latex_solution_macro(ex_source):
     return filled_string
 
 
-def render_latex_template(sheetinfo, inclass_list_extended, homework_list_extended, args):
+def render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution):
     # Jinja2 magic to parse latex template
     latex_jinja_env = jinja2.Environment(variable_start_string='\VAR{',
                                          variable_end_string='}',
@@ -135,27 +133,29 @@ def render_latex_template(sheetinfo, inclass_list_extended, homework_list_extend
 
     inclass_list_tex = ''
     homework_list_tex = ''
-    if args.solutionflag == 'y':
+    #if args.solutionflag == 'y':
         # print also solutions
-        for inclass_ex in inclass_list_extended:
-            inclass_list_tex += fill_latex_inclass_macro(inclass_ex['title'],
-                                                         inclass_ex['ex'])
+    for inclass_ex in inclass_list_extended:
+        inclass_list_tex += fill_latex_inclass_macro(inclass_ex['title'],
+                                                        inclass_ex['ex'])
+        if print_solution:
             inclass_list_tex += fill_latex_solution_macro(inclass_ex['sol'])
 
-        for homework_ex in homework_list_extended:
-            homework_list_tex += fill_latex_homework_macro(homework_ex['title'],
-                                                           homework_ex['ex'],
-                                                           homework_ex['pt'])
+    for homework_ex in homework_list_extended:
+        homework_list_tex += fill_latex_homework_macro(homework_ex['title'],
+                                                        homework_ex['ex'],
+                                                        homework_ex['pt'])
+        if print_solution: 
             homework_list_tex += fill_latex_solution_macro(homework_ex['sol'])
 
-    else:
-        for inclass_ex in inclass_list_extended:
-            inclass_list_tex += fill_latex_inclass_macro(inclass_ex['title'],
-                                                         inclass_ex['ex'])
-        for homework_ex in homework_list_extended:
-            homework_list_tex += fill_latex_homework_macro(homework_ex['title'],
-                                                           homework_ex['ex'],
-                                                           homework_ex['pt'])
+    #else:
+        #for inclass_ex in inclass_list_extended:
+            #inclass_list_tex += fill_latex_inclass_macro(inclass_ex['title'],
+                                                         #inclass_ex['ex'])
+        #for homework_ex in homework_list_extended:
+            #homework_list_tex += fill_latex_homework_macro(homework_ex['title'],
+                                                           #homework_ex['ex'],
+                                                           #homework_ex['pt'])
 
     # parse template
     output_from_rendered_template = template.render(course=sheetinfo.get('lecture', 'name of lecture'),
@@ -173,25 +173,25 @@ def render_latex_template(sheetinfo, inclass_list_extended, homework_list_extend
     # remove old files from built folder
     old_files = os.listdir(sheetinfo.get('build_folder', './bld/'))
     for item in old_files:
-        if item.startswith(sheetinfo['compilename'] + '.'):
+        if item.startswith(compilename + '.'):
             os.remove(os.path.join(sheetinfo.get('build_folder', './bld/'), item))
 
     # write to new file
-    with open(sheetinfo.get('build_folder', './bld/') + sheetinfo['compilename'] + '.tex', 'w') as fh:
+    with open(os.path.join(sheetinfo.get('build_folder', './bld/'), compilename), 'w') as fh:
         fh.write(output_from_rendered_template)
 
 
-def build_latex_document(sheetinfo):
+def build_latex_document(compilename, sheetinfo):
     # build latex document
     latex_command = 'pdflatex -synctex=1 -interaction=nonstopmode ' \
               + ' --shell-escape --output-directory=' + sheetinfo.get('build_folder', './bld/') + ' ' \
-              + sheetinfo.get('build_folder', './bld/') + sheetinfo['compilename'] + '.tex' + ' >/dev/null '
-    bibtex_command =  'bibtex ' + sheetinfo.get('build_folder', './bld/') + sheetinfo['compilename'] + '.tex' +  '>/dev/null '
+              + sheetinfo.get('build_folder', './bld/') + compilename + ' >/dev/null '
+    bibtex_command =  'bibtex ' + sheetinfo.get('build_folder', './bld/') + compilename +  '>/dev/null '
     print(latex_command)
     os.system(latex_command)
     print(bibtex_command)
     os.system(bibtex_command)
-    print('compiled to: ' + sheetinfo['compilename'])
+    print('compiled to: ' + compilename)
 
     print(latex_command)
     os.system(latex_command)
@@ -214,8 +214,13 @@ if __name__ == '__main__':
     try:
         if not os.path.exists(sheetinfo.get('build_folder', './bld/')):
             os.makedirs(sheetinfo.get('build_folder', './bld/'))
-        render_latex_template(sheetinfo, inclass_list_extended, homework_list_extended, args)
-        build_latex_document(sheetinfo)
+        compilename = sheetinfo['compilename'] + '.tex'
+        render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution=False)
+        build_latex_document(compilename, sheetinfo)
+        if args.solutionflag: 
+            compilename = sheetinfo['compilename'] + '_solution.tex'
+            render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution=True)
+            build_latex_document(compilename, sheetinfo)
     finally:
         os.chdir(oldpwd)
 
