@@ -60,14 +60,14 @@ def make_exercise_lists(sheetinfo, inclass, homework):
     inclass_list_extended = []
     homework_list_extended = []
     for (key, value) in inclass.items():
-        title, filename = [x.strip() for x in value.split('§')]
+        title, filename = [x.strip() for x in value.split('&&')]
         inclass_list_extended.append(make_exercise_info(title,
                                                         sheetinfo['path_to_ex'] + filename + '.tex',
                                                         sheetinfo['path_to_sol'] + filename + '_solution.tex',
                                                         '0'))
 
     for (key, value) in homework.items():
-        title, filename, points = [x.strip() for x in value.split('§')]
+        title, filename, points = [x.strip() for x in value.split('&&')]
         homework_list_extended.append(make_exercise_info(title,
                                                          sheetinfo['path_to_ex'] + filename + '.tex',
                                                          sheetinfo['path_to_sol'] + filename + '_solution.tex',
