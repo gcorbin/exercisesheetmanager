@@ -61,16 +61,19 @@ def make_exercise_lists(sheetinfo, inclass, homework):
     homework_list_extended = []
     for (key, value) in inclass.items():
         title, filename = [x.strip() for x in value.split('&&')]
+        
+        path_to_ex = os.path.join(sheetinfo['path_to_res'], filename, 'exercise.tex')
+        path_to_sol = os.path.join(sheetinfo['path_to_res'], filename, 'solution.tex')
         inclass_list_extended.append(make_exercise_info(title,
-                                                        sheetinfo['path_to_ex'] + filename + '.tex',
-                                                        sheetinfo['path_to_sol'] + filename + '_solution.tex',
+                                                        path_to_ex,
+                                                        path_to_sol,
                                                         '0'))
 
     for (key, value) in homework.items():
         title, filename, points = [x.strip() for x in value.split('&&')]
         homework_list_extended.append(make_exercise_info(title,
-                                                         sheetinfo['path_to_ex'] + filename + '.tex',
-                                                         sheetinfo['path_to_sol'] + filename + '_solution.tex',
+                                                         path_to_ex,
+                                                         path_to_sol,
                                                          points))
 
     return inclass_list_extended, homework_list_extended
@@ -163,8 +166,7 @@ def render_latex_template(sheetinfo, inclass_list_extended, homework_list_extend
                                                     sheetname=sheetinfo.get('sheetname', 'Blatt'),
                                                     disclaimer=sheetinfo.get('disclaimer', 'empty_disclaimer'),
                                                     deadlinetext=sheetinfo.get('deadlinetext', 'deadline: '),
-                                                    path_to_sol=sheetinfo.get('path_to_sol', './'),
-                                                    path_to_ex=sheetinfo.get('path_to_ex', './'),
+                                                    path_to_res=sheetinfo.get('path_to_res', './'),
                                                     inputlist=inclass_list_tex
                                                               + homework_list_tex)
 
