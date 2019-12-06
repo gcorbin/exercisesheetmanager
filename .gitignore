@@ -1,15 +1,20 @@
-WS1920/bld/
-*.*
-!*.py
-!*.tex
-!*.m
-!*.cls
-!*.def
-!*.bst.rtf
-!.gitignore
-!*.ini
-!*.sty
-!*.bib
-!*.mlx
-!ressources/exercises/add_material/dummy1/modelvsdata.png
-!wrapper/TUKL_LOGO_FELD_UNTEN_4C.pdf
+### ignore everything but descend into directories
+*
+!*/
+
+### allow files of this type in all subdirectories
+!/**/.gitignore
+!/**/*.ini
+!/**/*.tex
+!/**/*.sty
+!/**/*.cls
+!/**/*.bib
+!/**/*.py
+!/**/*.m
+
+### allow these files only in the current directory
+!Readme.md
+!resources/
+
+## explicitly exclude 
+/**/bld/
