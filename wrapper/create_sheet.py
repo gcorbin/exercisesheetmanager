@@ -211,11 +211,9 @@ if __name__ == '__main__':
     sheetinfo, inclass, homework, args = load_sheet_data()
     inclass_list_extended, homework_list_extended = make_exercise_lists(sheetinfo, inclass, homework)
     print_sheetinfo(sheetinfo, inclass_list_extended, homework_list_extended)
-    oldpwd=os.getcwd()
-    os.chdir(sheetinfo['tex_root'])
-    try:
-        if not os.path.exists(sheetinfo.get('build_folder', './bld/')):
-            os.makedirs(sheetinfo.get('build_folder', './bld/'))
+    
+    with os_utils.ChangedDirectory(sheetinfo['tex_root']): 
+        os_utils.make_directories_if_nonexistent(sheetinfo.get('build_folder', './bld/'))
         compilename = sheetinfo['compilename']
         render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution=False)
         build_latex_document(compilename, sheetinfo)
@@ -223,7 +221,4 @@ if __name__ == '__main__':
             compilename = sheetinfo['compilename'] + '_solution'
             render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution=True)
             build_latex_document(compilename, sheetinfo)
-    finally:
-        os.chdir(oldpwd)
-
-    print('\nScript finished :) \n')
+    logger.info('Creation of %s successfull', sheetinfo['compilename'])

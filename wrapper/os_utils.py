@@ -1,6 +1,16 @@
 import os
 import logging
 
+
+logger = logging.getLogger('ExerciseSheetManager.'+__name__)
+
+
+def make_directories_if_nonexistent(path):
+    if not os.path.isdir(path):
+        logger.debug('Making new directory %s', path)
+        os.makedirs(path)
+        
+        
 class ChangedDirectory:
 
     def __init__(self, path):
