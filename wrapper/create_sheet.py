@@ -5,10 +5,6 @@
 # 2: parse latex template
 # 3: compile latex file and create pdf
 
-# additional parameters: config file, solutions n/y
-# execute in command line:
-# $ python create_sheet.py  SS18_inclass_sheet1.py -s n/y
-
 import jinja2
 import sys
 import os
@@ -38,6 +34,7 @@ def load_sheet_data():
         config = configparser.ConfigParser()
         config.read(args.sheetinfo)
         sheetinfo = config['sheet_info']
+        sheetinfo['build_folder'] = sheetinfo.get('build_folder', './bld/')
         inclass = config['inclass']
         homework = config['homework']
     else:
@@ -159,24 +156,24 @@ def render_latex_template(compilename, sheetinfo, inclass_list_extended, homewor
                                                               + homework_list_tex)
 
     # remove old files from built folder
-    old_files = os.listdir(sheetinfo.get('build_folder', './bld/'))
+    old_files = os.listdir(sheetinfo['build_folder'])
     for item in old_files:
         if item.startswith(compilename + '.'):
-            os.remove(os.path.join(sheetinfo.get('build_folder', './bld/'), item))
+            os.remove(os.path.join(sheetinfo['build_folder'], item))
 
     # write to new file
-    with open(os.path.join(sheetinfo.get('build_folder', './bld/'), compilename), 'w') as fh:
+    with open(os.path.join(sheetinfo['build_folder'], compilename), 'w') as fh:
         fh.write(output_from_rendered_template)
 
 
 def build_latex_document(compilename, sheetinfo):
     # build latex document
     latex_command = ['pdflatex', '-synctex=1', '-interaction=nonstopmode', '--shell-escape',
-                     '--output-directory='+sheetinfo.get('build_folder', './bld/'), 
-                     sheetinfo.get('build_folder', './bld/') + compilename]
+                     '--output-directory='+sheetinfo['build_folder'], 
+                     sheetinfo['build_folder'] + compilename]
     
     bibtex_command = ['bibtex',
-                      sheetinfo.get('build_folder', './bld/') + compilename]
+                      sheetinfo['build_folder'] + compilename]
     
     logger.info('Compiling Latex Document %s', compilename)
     logger.debug('Latex command %s', latex_command)
@@ -208,7 +205,7 @@ if __name__ == '__main__':
         print_sheetinfo(sheetinfo, inclass_list_extended, homework_list_extended)
         
         with os_utils.ChangedDirectory(sheetinfo['tex_root']): 
-            os_utils.make_directories_if_nonexistent(sheetinfo.get('build_folder', './bld/'))
+            os_utils.make_directories_if_nonexistent(sheetinfo['build_folder'])
             compilename = sheetinfo['compilename']
             render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution=False)
             build_latex_document(compilename, sheetinfo)
