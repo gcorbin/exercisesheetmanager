@@ -15,6 +15,7 @@ import os
 import argparse
 import configparser
 import logging 
+import subprocess
 
 import tex_utils
 import os_utils
@@ -176,26 +177,32 @@ def render_latex_template(compilename, sheetinfo, inclass_list_extended, homewor
 
 def build_latex_document(compilename, sheetinfo):
     # build latex document
-    latex_command = 'pdflatex -synctex=1 -interaction=nonstopmode ' \
-              + ' --shell-escape --output-directory=' + sheetinfo.get('build_folder', './bld/') + ' ' \
-              + sheetinfo.get('build_folder', './bld/') + compilename + ' >/dev/null '
-    bibtex_command =  'bibtex ' + sheetinfo.get('build_folder', './bld/') + compilename +  '>/dev/null '
-    print(latex_command)
-    os.system(latex_command)
-    print(bibtex_command)
-    os.system(bibtex_command)
-    print('compiled to: ' + compilename)
-
-    print(latex_command)
-    os.system(latex_command)
-    print(latex_command)
-    os.system(latex_command)
-
-def cwd(path):
-        print('hello')
-
-        print(os.getcwd())
-# -------- run script --------------------------------------------------------
+    latex_command = ['pdflatex', '-synctex=1', '-interaction=nonstopmode', '--shell-escape',
+                     '--output-directory='+sheetinfo.get('build_folder', './bld/'), 
+                     sheetinfo.get('build_folder', './bld/') + compilename]
+    
+    bibtex_command = ['bibtex',
+                      sheetinfo.get('build_folder', './bld/') + compilename]
+    
+    logger.info('Compiling Latex Document %s', compilename)
+    logger.debug('Latex command %s', latex_command)
+    logger.debug('bibtex_command %s', bibtex_command)
+    
+    try: 
+        FNULL = open(os.devnull, 'w')
+        logger.info('Latex: first run')
+        subprocess.check_call(latex_command, stdout=FNULL)
+        logger.info('Bibtex')
+        status = subprocess.call(bibtex_command, stdout=FNULL)
+        if status != 0: 
+            logger.warning('Bibtex command exited with error. Status %s', status)
+        logger.info('Latex: second run')
+        subprocess.check_call(latex_command, stdout=FNULL)
+        logger.info('Latex: third run')
+        subprocess.check_call(latex_command, stdout=FNULL)
+        
+    except subprocess.CalledProcessError as ex:
+        logger.error('Error during compilation of latex document. Exit status: %s', ex.returncode)
 
 
 if __name__ == '__main__':
@@ -209,11 +216,11 @@ if __name__ == '__main__':
     try:
         if not os.path.exists(sheetinfo.get('build_folder', './bld/')):
             os.makedirs(sheetinfo.get('build_folder', './bld/'))
-        compilename = sheetinfo['compilename'] + '.tex'
+        compilename = sheetinfo['compilename']
         render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution=False)
         build_latex_document(compilename, sheetinfo)
         if args.solutionflag: 
-            compilename = sheetinfo['compilename'] + '_solution.tex'
+            compilename = sheetinfo['compilename'] + '_solution'
             render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution=True)
             build_latex_document(compilename, sheetinfo)
     finally:
