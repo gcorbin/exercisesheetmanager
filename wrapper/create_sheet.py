@@ -35,7 +35,6 @@ def load_sheet_data():
     args = parser.parse_args()
 
     if os.path.splitext(args.sheetinfo)[1] == '.ini':
-
         config = configparser.ConfigParser()
         config.read(args.sheetinfo)
         sheetinfo = config['sheet_info']
@@ -43,13 +42,8 @@ def load_sheet_data():
         homework = config['homework']
     else:
         raise ValueError('Filename needs to be in the <myfile.ini>!!!')
-    try:
-        sheetinfo['compilename']
-        #if args.solutionflag == 'y':
-            #sheetinfo['compilename'] += '_solution'
-    except KeyError:
-        print('You have to specify a filename for the compiled document!')
-        sys.exit()
+    if not config.has_option('sheet_info', 'compilename'):
+        raise KeyError("The 'sheet_info.compilename' option must be set in the config file")
 
     return sheetinfo, inclass, homework, args
 
@@ -208,17 +202,21 @@ def build_latex_document(compilename, sheetinfo):
 if __name__ == '__main__':
     set_default_logging_behavior(logfile='create_sheet')
     
-    sheetinfo, inclass, homework, args = load_sheet_data()
-    inclass_list_extended, homework_list_extended = make_exercise_lists(sheetinfo, inclass, homework)
-    print_sheetinfo(sheetinfo, inclass_list_extended, homework_list_extended)
-    
-    with os_utils.ChangedDirectory(sheetinfo['tex_root']): 
-        os_utils.make_directories_if_nonexistent(sheetinfo.get('build_folder', './bld/'))
-        compilename = sheetinfo['compilename']
-        render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution=False)
-        build_latex_document(compilename, sheetinfo)
-        if args.solutionflag: 
-            compilename = sheetinfo['compilename'] + '_solution'
-            render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution=True)
+    try: 
+        sheetinfo, inclass, homework, args = load_sheet_data()
+        inclass_list_extended, homework_list_extended = make_exercise_lists(sheetinfo, inclass, homework)
+        print_sheetinfo(sheetinfo, inclass_list_extended, homework_list_extended)
+        
+        with os_utils.ChangedDirectory(sheetinfo['tex_root']): 
+            os_utils.make_directories_if_nonexistent(sheetinfo.get('build_folder', './bld/'))
+            compilename = sheetinfo['compilename']
+            render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution=False)
             build_latex_document(compilename, sheetinfo)
-    logger.info('Creation of %s successfull', sheetinfo['compilename'])
+            if args.solutionflag: 
+                compilename = sheetinfo['compilename'] + '_solution'
+                render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution=True)
+                build_latex_document(compilename, sheetinfo)
+        logger.info('Creation of %s successfull', sheetinfo['compilename'])
+    except Exception as ex:
+        logger.critical('', exc_info=ex)
+        sys.exit(1)
