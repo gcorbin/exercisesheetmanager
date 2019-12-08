@@ -14,12 +14,19 @@ import sys
 import os
 import argparse
 import configparser
+import logging 
 
+import tex_utils
+import os_utils
+from defaultlogger import set_default_logging_behavior
+
+logger = logging.getLogger('ExerciseSheetManager.create_sheet')
 
 # -----------------------------------------------------------------------------
 
 
 def load_sheet_data():
+    logger.info('Loading sheet data.')
     parser = argparse.ArgumentParser(description='Create exercise sheet.')
     parser.add_argument('sheetinfo', type=str,
                         help='py file containing sheet information')
@@ -100,9 +107,12 @@ def print_sheetinfo(sheetinfo, inclass_list_extended, homework_list_extended):
 
 def fill_latex_inclass_macro(ex_name, ex_source):
     # inserts inclass-block in latex document
-    filled_string = '\\begin{Aufgabe}{' + ex_name + '} \n' \
-                    + '\input{' + ex_source + '} \n \\end{Aufgabe} \n\n'
-    return filled_string
+    #filled_string = '\\begin{Aufgabe}{' + ex_name + '} \n' \
+                    #+ '\input{' + ex_source + '} \n \\end{Aufgabe} \n\n'
+    #return filled_string
+    return tex_utils.tex_environment('Aufgabe',
+                                 [tex_utils.tex_command('input', [ex_source])],
+                                 [ex_name])
 
 
 def fill_latex_homework_macro(ex_name, ex_source, ex_points):
@@ -133,8 +143,6 @@ def render_latex_template(compilename, sheetinfo, inclass_list_extended, homewor
 
     inclass_list_tex = ''
     homework_list_tex = ''
-    #if args.solutionflag == 'y':
-        # print also solutions
     for inclass_ex in inclass_list_extended:
         inclass_list_tex += fill_latex_inclass_macro(inclass_ex['title'],
                                                         inclass_ex['ex'])
@@ -147,15 +155,6 @@ def render_latex_template(compilename, sheetinfo, inclass_list_extended, homewor
                                                         homework_ex['pt'])
         if print_solution: 
             homework_list_tex += fill_latex_solution_macro(homework_ex['sol'])
-
-    #else:
-        #for inclass_ex in inclass_list_extended:
-            #inclass_list_tex += fill_latex_inclass_macro(inclass_ex['title'],
-                                                         #inclass_ex['ex'])
-        #for homework_ex in homework_list_extended:
-            #homework_list_tex += fill_latex_homework_macro(homework_ex['title'],
-                                                           #homework_ex['ex'],
-                                                           #homework_ex['pt'])
 
     # parse template
     output_from_rendered_template = template.render(course=sheetinfo.get('lecture', 'name of lecture'),
@@ -206,6 +205,8 @@ def cwd(path):
 
 
 if __name__ == '__main__':
+    set_default_logging_behavior(logfile='create_sheet')
+    
     sheetinfo, inclass, homework, args = load_sheet_data()
     inclass_list_extended, homework_list_extended = make_exercise_lists(sheetinfo, inclass, homework)
     print_sheetinfo(sheetinfo, inclass_list_extended, homework_list_extended)
