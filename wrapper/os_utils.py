@@ -15,16 +15,21 @@ class ChangedDirectory:
 
     def __init__(self, path):
         self._path = path
-        self._cwd = None
+        self._origin = None
 
     def __enter__(self):
-        self._cwd = os.getcwd()
-        newdir = os.path.join(self._cwd, self._path)
-        logger.debug('Entering working directory %s', newdir)
+        self._origin = os.getcwd()
+        logger.debug('Entering working directory %s', os.path.join(self._origin, self._path))
         os.chdir(self._path)
-        return newdir
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        logger.debug('Changing working directory back to %s', self._cwd)
-        os.chdir(self._cwd)
+        logger.debug('Changing working directory back to %s', self._origin)
+        os.chdir(self._origin)
         return False
+    
+    def origin(self):
+        return self._origin
+    
+    def current(self):
+        return os.getcwd()

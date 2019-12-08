@@ -59,8 +59,8 @@ def make_exercise_lists(sheetinfo, inclass, homework):
     for (key, value) in inclass.items():
         title, filename = [x.strip() for x in value.split('&&')]
         
-        path_to_ex = os.path.join(sheetinfo['path_to_res'], filename, 'exercise.tex')
-        path_to_sol = os.path.join(sheetinfo['path_to_res'], filename, 'solution.tex')
+        path_to_ex = os.path.abspath(os.path.join(sheetinfo['path_to_res'], filename, 'exercise.tex'))
+        path_to_sol = os.path.abspath(os.path.join(sheetinfo['path_to_res'], filename, 'solution.tex'))
         inclass_list_extended.append(make_exercise_info(title,
                                                         path_to_ex,
                                                         path_to_sol,
@@ -124,7 +124,7 @@ def render_latex_template(compilename, sheetinfo, inclass_list_extended, homewor
     latex_jinja_env = jinja2.Environment(variable_start_string='\VAR{',
                                          variable_end_string='}',
                                          autoescape=False,
-                                         loader=jinja2.FileSystemLoader(os.path.abspath('.')))
+                                         loader=jinja2.FileSystemLoader(sheetinfo['tex_root']))
     template = latex_jinja_env.get_template(sheetinfo['main_template'])
 
     inclass_list_tex = ''
@@ -151,7 +151,7 @@ def render_latex_template(compilename, sheetinfo, inclass_list_extended, homewor
                                                     sheetname=sheetinfo.get('sheetname', 'Blatt'),
                                                     disclaimer=sheetinfo.get('disclaimer', 'empty_disclaimer'),
                                                     deadlinetext=sheetinfo.get('deadlinetext', 'deadline: '),
-                                                    path_to_res=sheetinfo.get('path_to_res', './'),
+                                                    path_to_res=os.path.abspath(sheetinfo.get('path_to_res', './')),
                                                     inputlist=inclass_list_tex
                                                               + homework_list_tex)
 
@@ -162,38 +162,40 @@ def render_latex_template(compilename, sheetinfo, inclass_list_extended, homewor
             os.remove(os.path.join(sheetinfo['build_folder'], item))
 
     # write to new file
-    with open(os.path.join(sheetinfo['build_folder'], compilename), 'w') as fh:
+    with open(os.path.join(sheetinfo['build_folder'], compilename + '.tex'), 'w') as fh:
         fh.write(output_from_rendered_template)
 
 
 def build_latex_document(compilename, sheetinfo):
-    # build latex document
-    latex_command = ['pdflatex', '-synctex=1', '-interaction=nonstopmode', '--shell-escape',
-                     '--output-directory='+sheetinfo['build_folder'], 
-                     sheetinfo['build_folder'] + compilename]
-    
-    bibtex_command = ['bibtex',
-                      sheetinfo['build_folder'] + compilename]
-    
-    logger.info('Compiling Latex Document %s', compilename)
-    logger.debug('Latex command %s', latex_command)
-    logger.debug('bibtex_command %s', bibtex_command)
-    
-    try: 
-        FNULL = open(os.devnull, 'w')
-        logger.info('Latex: first run')
-        subprocess.check_call(latex_command, stdout=FNULL)
-        logger.info('Bibtex')
-        status = subprocess.call(bibtex_command, stdout=FNULL)
-        if status != 0: 
-            logger.warning('Bibtex command exited with error. Status %s', status)
-        logger.info('Latex: second run')
-        subprocess.check_call(latex_command, stdout=FNULL)
-        logger.info('Latex: third run')
-        subprocess.check_call(latex_command, stdout=FNULL)
+    build_dir = os.path.abspath(sheetinfo['build_folder'])
+    build_file = os.path.join(build_dir, compilename)
+    with os_utils.ChangedDirectory(sheetinfo['tex_root']): 
+        # build latex document
+        latex_command = ['pdflatex', '-synctex=1', '-interaction=nonstopmode', '--shell-escape',
+                        '--output-directory='+build_dir, build_file]
         
-    except subprocess.CalledProcessError as ex:
-        logger.error('Error during compilation of latex document. Exit status: %s', ex.returncode)
+        bibtex_command = ['bibtex', build_file]
+        
+        logger.info('Compiling Latex Document %s', compilename)
+        logger.debug('Latex command %s', latex_command)
+        logger.debug('bibtex_command %s', bibtex_command)
+        
+        try: 
+            FNULL = open(os.devnull, 'w')
+            logger.info('Latex: first run')
+            subprocess.check_call(latex_command, stdout=FNULL)
+            logger.info('Bibtex')
+            status = subprocess.call(bibtex_command, stdout=FNULL)
+            if status != 0: 
+                logger.warning('Bibtex command exited with error. Status %s', status)
+            logger.info('Latex: second run')
+            subprocess.check_call(latex_command, stdout=FNULL)
+            logger.info('Latex: third run')
+            subprocess.check_call(latex_command, stdout=FNULL)
+            
+        except subprocess.CalledProcessError as ex:
+            logger.error('Error during compilation of latex document. Exit status: %s', ex.returncode)
+            raise
 
 
 if __name__ == '__main__':
@@ -204,15 +206,16 @@ if __name__ == '__main__':
         inclass_list_extended, homework_list_extended = make_exercise_lists(sheetinfo, inclass, homework)
         print_sheetinfo(sheetinfo, inclass_list_extended, homework_list_extended)
         
-        with os_utils.ChangedDirectory(sheetinfo['tex_root']): 
-            os_utils.make_directories_if_nonexistent(sheetinfo['build_folder'])
-            compilename = sheetinfo['compilename']
-            render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution=False)
+        os_utils.make_directories_if_nonexistent(sheetinfo['build_folder'])
+        
+        compilename = sheetinfo['compilename']
+        render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution=False)   
+        build_latex_document(compilename, sheetinfo)        
+        if args.solutionflag: 
+            compilename = sheetinfo['compilename'] + '_solution'
+            render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution=True)
             build_latex_document(compilename, sheetinfo)
-            if args.solutionflag: 
-                compilename = sheetinfo['compilename'] + '_solution'
-                render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution=True)
-                build_latex_document(compilename, sheetinfo)
+            
         logger.info('Creation of %s successfull', sheetinfo['compilename'])
     except Exception as ex:
         logger.critical('', exc_info=ex)
