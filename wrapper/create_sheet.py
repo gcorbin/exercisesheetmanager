@@ -106,32 +106,26 @@ def print_sheetinfo(sheetinfo, inclass_list_extended, homework_list_extended):
 
 
 def fill_latex_inclass_macro(ex_name, ex_source):
-    # inserts inclass-block in latex document
-    #filled_string = '\\begin{Aufgabe}{' + ex_name + '} \n' \
-                    #+ '\input{' + ex_source + '} \n \\end{Aufgabe} \n\n'
-    #return filled_string
     return tex_utils.tex_environment('Aufgabe',
                                  [tex_utils.tex_command('input', [ex_source])],
                                  [ex_name])
 
 
 def fill_latex_homework_macro(ex_name, ex_source, ex_points):
-    # inserts homework-block in latex document
-    if ex_points == 'no_discussion':
-        filled_string = '\\begin{HausaufgabeNoDiscussion}{' + ex_name + '}' \
-                     + ' \n \input{' + ex_source + '} \n \\end{Hausaufgabe} \n\n'
+    if ex_points == 'no_discussion': 
+       return tex_utils.tex_environment('HausaufgabeNoDiscussion', 
+                                  tex_utils.tex_command('input', [ex_source]), 
+                                  [ex_name])
     else:
-        filled_string = '\\begin{Hausaufgabe}{' + ex_name + '}{' + ex_points + '}' \
-                        + ' \n \input{' + ex_source + '} \n \\end{Hausaufgabe} \n\n'
-    return filled_string
+        return tex_utils.tex_environment('Hausaufgabe', 
+                                  tex_utils.tex_command('input', [ex_source]), 
+                                  [ex_name, ex_points])
 
 
 def fill_latex_solution_macro(ex_source):
-    # inserts solution-block in latex document
-    filled_string = '\\begin{Loesung} \n' \
-                    + '\input{' + ex_source + '} \n \\end{Loesung} \n\n'
-    return filled_string
-
+    return tex_utils.tex_environment('Loesung',
+                                     tex_utils.tex_command('input', [ex_source]))
+                                     
 
 def render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution):
     # Jinja2 magic to parse latex template
