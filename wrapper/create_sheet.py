@@ -34,7 +34,7 @@ def load_sheet_data():
         config = configparser.ConfigParser()
         config.read(args.sheetinfo)
         sheetinfo = config['sheet_info']
-        sheetinfo['build_folder'] = sheetinfo.get('build_folder', './bld/')
+        sheetinfo['build_folder'] = sheetinfo.get('build_folder', './build/')
         inclass = config['inclass']
         homework = config['homework']
     else:
@@ -155,7 +155,7 @@ def render_latex_template(compilename, sheetinfo, inclass_list_extended, homewor
                                                     inputlist=inclass_list_tex
                                                               + homework_list_tex)
 
-    # remove old files from built folder
+    # remove old files from build folder
     old_files = os.listdir(sheetinfo['build_folder'])
     for item in old_files:
         if item.startswith(compilename + '.'):
@@ -169,33 +169,36 @@ def render_latex_template(compilename, sheetinfo, inclass_list_extended, homewor
 def build_latex_document(compilename, sheetinfo):
     build_dir = os.path.abspath(sheetinfo['build_folder'])
     build_file = os.path.join(build_dir, compilename)
-    with os_utils.ChangedDirectory(sheetinfo['tex_root']): 
-        # build latex document
-        latex_command = ['pdflatex', '-synctex=1', '-interaction=nonstopmode', '--shell-escape',
-                        '--output-directory='+build_dir, build_file]
-        
-        bibtex_command = ['bibtex', build_file]
-        
-        logger.info('Compiling Latex Document %s', compilename)
-        logger.debug('Latex command %s', latex_command)
-        logger.debug('bibtex_command %s', bibtex_command)
-        
-        try: 
-            FNULL = open(os.devnull, 'w')
+    
+    # build latex document
+    latex_command = ['pdflatex', '-synctex=1', '-interaction=nonstopmode', '--shell-escape',
+                    '--output-directory='+build_dir, build_file]
+    
+    bibtex_command = ['bibtex', compilename]
+    
+    logger.info('Compiling Latex Document %s', compilename)
+    logger.debug('Latex command %s', latex_command)
+    logger.debug('bibtex_command %s', bibtex_command)
+    
+    try: 
+        FNULL = open(os.devnull, 'w')
+        with os_utils.ChangedDirectory(sheetinfo['tex_root']): 
             logger.info('Latex: first run')
             subprocess.check_call(latex_command, stdout=FNULL)
+        with os_utils.ChangedDirectory(build_dir):
             logger.info('Bibtex')
             status = subprocess.call(bibtex_command, stdout=FNULL)
-            if status != 0: 
-                logger.warning('Bibtex command exited with error. Status %s', status)
+        if status != 0: 
+            logger.warning('Bibtex command exited with error. Status %s', status)
+        with os_utils.ChangedDirectory(sheetinfo['tex_root']): 
             logger.info('Latex: second run')
             subprocess.check_call(latex_command, stdout=FNULL)
             logger.info('Latex: third run')
             subprocess.check_call(latex_command, stdout=FNULL)
-            
-        except subprocess.CalledProcessError as ex:
-            logger.error('Error during compilation of latex document. Exit status: %s', ex.returncode)
-            raise
+        
+    except subprocess.CalledProcessError as ex:
+        logger.error('Error during compilation of latex document. Exit status: %s', ex.returncode)
+        raise
 
 
 if __name__ == '__main__':
