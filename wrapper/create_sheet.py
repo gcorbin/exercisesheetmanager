@@ -149,8 +149,14 @@ def render_latex_template(compilename, sheetinfo, inclass_list_extended, homewor
             homework_list_tex += '\n'
             homework_list_tex += fill_latex_solution_macro(homework_ex['sol'])
 
+
+    class_options_list = []
+    if render_solution: 
+        class_options_list.append('Loesungen')
+    class_options = ','.join(class_options_list)
     # parse template
-    output_from_rendered_template = template.render(course=sheetinfo.get('lecture', 'name of lecture'),
+    output_from_rendered_template = template.render(classoptions=class_options,
+                                                    course=sheetinfo.get('lecture', 'name of lecture'),
                                                     lecturer=sheetinfo.get('lecturer', 'name of lecturer'),
                                                     releasedate=sheetinfo.get('releasedate', 'released today'),
                                                     deadline=sheetinfo.get('deadline', 'today'),

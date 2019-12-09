@@ -124,6 +124,38 @@
 \RequirePackage{tikz}
 \RequirePackage{scrlayer-scrpage}
 \RequirePackage{listings}
+\RequirePackage{xifthen}
+\RequirePackage{verbatim} % für die macros \comment und \endcomment
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% EIGENE COUNTER
+
+% Blattcounter
+\newcounter{blatt}
+% Gleichungscounter
+\numberwithin{equation}{blatt}
+% Aufgabencounter
+\newcounter{aufgaben}[blatt]
+\renewcommand{\theaufgaben}{\theblatt.\arabic{aufgaben}}
+
+\newcounter{hausaufgaben}[blatt]
+\renewcommand{\thehausaufgaben}{\theblatt.\arabic{hausaufgaben}}
+\newcounter{loesungen}[blatt]
+\renewcommand{\theloesungen}{\theblatt.\arabic{loesungen}}
+
+\newif\ifloesung
+\loesungfalse
+\newenvironment{Loesung}{\comment}{\endcomment}
+\DeclareOption{Loesungen}{%
+		\renewenvironment{Loesung}{%
+			\refstepcounter{loesungen}
+			\hrulefill
+			\subsection*{L\"{o}sung}
+		}{}%
+	\loesungtrue
+}
+
+\ProcessOptions\relax
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % FARBDEFINITIONEN
@@ -170,22 +202,6 @@
 
 % Schriftart PT Sans
 \renewcommand{\familydefault}{\sfdefault}
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% EIGENE COUNTER
-
-% Blattcounter
-\newcounter{blatt}
-% Gleichungscounter
-\numberwithin{equation}{blatt}
-% Aufgabencounter
-\newcounter{aufgaben}[blatt]
-\renewcommand{\theaufgaben}{\theblatt.\arabic{aufgaben}}
-
-\newcounter{hausaufgaben}[blatt]
-\renewcommand{\thehausaufgaben}{\theblatt.\arabic{hausaufgaben}}
-\newcounter{loesungen}[blatt]
-\renewcommand{\theloesungen}{\theblatt.\arabic{loesungen}}
 
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
@@ -289,14 +305,15 @@
 	
 }{}%\hrulefill}
 
-\newenvironment{Loesung}{
-	\refstepcounter{loesungen}
-	\hrulefill
-	\subsection*{L\"{o}sung: }
-	%\subsection*{L\"{o}sung  \theloesungen: }
-	%\begin{minipage}{\textwidth}
 
-}{}%\hrulefill}
+%\newenvironment{Loesung}{
+%	\refstepcounter{loesungen}
+%	\hrulefill
+%	\subsection*{L\"{o}sung: }
+%	%\subsection*{L\"{o}sung  \theloesungen: }
+%	%\begin{minipage}{\textwidth}
+%	
+%}{}%\hrulefill}
 
 
 
