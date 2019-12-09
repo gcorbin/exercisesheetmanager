@@ -57,8 +57,7 @@ def make_exercise_lists(sheetinfo, inclass, homework):
     inclass_list_extended = []
     homework_list_extended = []
     for (key, value) in inclass.items():
-        title, filename = [x.strip() for x in value.split('&&')]
-        
+        title, filename = [x.strip() for x in value.split('&&')]        
         path_to_ex = os.path.abspath(os.path.join(sheetinfo['path_to_res'], filename, 'exercise.tex'))
         path_to_sol = os.path.abspath(os.path.join(sheetinfo['path_to_res'], filename, 'solution.tex'))
         inclass_list_extended.append(make_exercise_info(title,
@@ -68,6 +67,8 @@ def make_exercise_lists(sheetinfo, inclass, homework):
 
     for (key, value) in homework.items():
         title, filename, points = [x.strip() for x in value.split('&&')]
+        path_to_ex = os.path.abspath(os.path.join(sheetinfo['path_to_res'], filename, 'exercise.tex'))
+        path_to_sol = os.path.abspath(os.path.join(sheetinfo['path_to_res'], filename, 'solution.tex'))
         homework_list_extended.append(make_exercise_info(title,
                                                          path_to_ex,
                                                          path_to_sol,
@@ -133,13 +134,15 @@ def render_latex_template(compilename, sheetinfo, inclass_list_extended, homewor
         inclass_list_tex += fill_latex_inclass_macro(inclass_ex['title'],
                                                         inclass_ex['ex'])
         if print_solution:
+            inclass_list_tex += '\n'
             inclass_list_tex += fill_latex_solution_macro(inclass_ex['sol'])
 
     for homework_ex in homework_list_extended:
         homework_list_tex += fill_latex_homework_macro(homework_ex['title'],
                                                         homework_ex['ex'],
                                                         homework_ex['pt'])
-        if print_solution: 
+        if print_solution:
+            homework_list_tex += '\n'
             homework_list_tex += fill_latex_solution_macro(homework_ex['sol'])
 
     # parse template
@@ -198,7 +201,27 @@ def build_latex_document(compilename, sheetinfo):
         
     except subprocess.CalledProcessError as ex:
         logger.error('Error during compilation of latex document. Exit status: %s', ex.returncode)
-        raise
+        logger.info('Errors from latex log file follow:')
+        try: 
+            with open(build_file + '.log', 'r') as texlog: 
+                try: 
+                    while True: 
+                        line = texlog.next()
+                        if line.startswith('!'): 
+                            logger.info(line.strip())
+                            i = 0
+                            while i < 5: 
+                                line = texlog.next()
+                                logger.info(line.strip())
+                                if line.startswith('!'):
+                                    i = 0
+                                else: 
+                                    i += 1
+                except StopIteration:
+                    pass
+        except OSError: 
+            logger.warning('Could not open tex log file %s', os.path.join(build_file,'.log'))
+        raise ex
 
 
 if __name__ == '__main__':
