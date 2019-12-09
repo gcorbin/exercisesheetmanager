@@ -149,12 +149,25 @@
 \DeclareOption{Loesungen}{%
 		\renewenvironment{Loesung}{%
 			\refstepcounter{loesungen}
-			\hrulefill
+			\par\hrulefill
 			\subsection*{L\"{o}sung}
 		}{}%
 	\loesungtrue
 }
 
+\newif\ifpunkte
+\punktefalse
+\newenvironment{Punkte}{\comment}{\endcomment}
+\newcommand{\punkte}[1]{}
+\DeclareOption{Punkte}{%
+	\ifloesung%
+	\renewenvironment{Punkte}{
+		\subsection*{Punktevergabe}
+	}{}%
+	\renewcommand{\punkte}[1]{\hfill \mbox{#1 Punkte}}
+	\punktetrue
+	\fi
+}
 \ProcessOptions\relax
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
@@ -282,7 +295,7 @@
 % BEFEHL FÜR AUFGABE
 \newenvironment{Aufgabe}[1]{
 	\refstepcounter{aufgaben}
-	\hrulefill
+	\par\hrulefill
 	\subsection*{Aufgabe \theaufgaben: \textit{#1 }}
 	%\begin{minipage}{\textwidth}
 
@@ -291,7 +304,7 @@
 
 \newenvironment{Hausaufgabe}[2]{
 	\refstepcounter{hausaufgaben}
-	\hrulefill
+	\par\hrulefill
 	\subsection*{Hausaufgabe \thehausaufgaben: \textit{#1 (#2)} }
 	%\begin{minipage}{\textwidth}
 
@@ -299,7 +312,7 @@
 
 \newenvironment{HausaufgabeNoDiscussion}[1]{
 	\refstepcounter{hausaufgaben}
-	\hrulefill
+	\par\hrulefill
 	\subsection*{Hausaufgabe \thehausaufgaben: \textit{#1} }
 	%\begin{minipage}{\textwidth}
 	

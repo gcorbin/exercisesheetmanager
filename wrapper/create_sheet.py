@@ -39,6 +39,7 @@ def load_sheet_data():
         config.read(args.sheetinfo)
         sheetinfo = config['sheet_info']
         sheetinfo['build_folder'] = sheetinfo.get('build_folder', './build/')
+        sheetinfo['ini_name'] = os.path.splitext(os.path.split(args.sheetinfo)[1])[0] 
         inclass = config['inclass']
         homework = config['homework']
     else:
@@ -49,10 +50,10 @@ def load_sheet_data():
     return sheetinfo, inclass, homework, args
 
 
-def make_exercise_info(title, ex, sol, pt):
+def make_exercise_info(title, ex, sol, pt, an):
     # data structure for exercise, consisting of
     # title, exercise file, solution file, string with points (e.g. 2+2)
-    return {'title': title, 'ex': ex, 'sol': sol, 'pt': pt}
+    return {'title': title, 'ex': ex, 'sol': sol, 'pt': pt, 'annotation':an}
 
 
 def make_exercise_lists(sheetinfo, inclass, homework):
@@ -64,19 +65,23 @@ def make_exercise_lists(sheetinfo, inclass, homework):
         title, filename = [x.strip() for x in value.split('&&')]        
         path_to_ex = os.path.abspath(os.path.join(sheetinfo['path_to_res'], filename, 'exercise.tex'))
         path_to_sol = os.path.abspath(os.path.join(sheetinfo['path_to_res'], filename, 'solution.tex'))
+        path_to_ann = os.path.abspath(sheetinfo['ini_name'] + '_' + filename + '.tex')
         inclass_list_extended.append(make_exercise_info(title,
                                                         path_to_ex,
                                                         path_to_sol,
-                                                        '0'))
+                                                        '0',
+                                                        path_to_ann))
 
     for (key, value) in homework.items():
         title, filename, points = [x.strip() for x in value.split('&&')]
         path_to_ex = os.path.abspath(os.path.join(sheetinfo['path_to_res'], filename, 'exercise.tex'))
         path_to_sol = os.path.abspath(os.path.join(sheetinfo['path_to_res'], filename, 'solution.tex'))
+        path_to_ann = os.path.abspath(sheetinfo['ini_name'] + '_' + filename + '.tex')
         homework_list_extended.append(make_exercise_info(title,
                                                          path_to_ex,
                                                          path_to_sol,
-                                                         points))
+                                                         points, 
+                                                         path_to_ann))
 
     return inclass_list_extended, homework_list_extended
 
@@ -122,9 +127,16 @@ def fill_latex_homework_macro(ex_name, ex_source, ex_points):
 def fill_latex_solution_macro(ex_source):
     return tex_utils.tex_environment('Loesung',
                                      tex_utils.tex_command('input', [ex_source]))
-                                     
 
-def render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, render_solution):
+
+def fill_latex_annotation_macro(ex_source): 
+    return tex_utils.tex_environment('Punkte', 
+                                     tex_utils.tex_command('input', [ex_source]))
+
+
+def render_latex_template(compilename, sheetinfo,
+                          inclass_list_extended, homework_list_extended,
+                          render_solution, render_annotations):
     # Jinja2 magic to parse latex template
     latex_jinja_env = jinja2.Environment(variable_start_string='\VAR{',
                                          variable_end_string='}',
@@ -140,6 +152,9 @@ def render_latex_template(compilename, sheetinfo, inclass_list_extended, homewor
         if render_solution:
             inclass_list_tex += '\n'
             inclass_list_tex += fill_latex_solution_macro(inclass_ex['sol'])
+        if render_annotations and os.path.isfile(inclass_ex['annotation']):
+            inclass_list_tex += '\n'
+            inclass_list_tex += fill_latex_annotation_macro(inclass_ex['annotation'])
 
     for homework_ex in homework_list_extended:
         homework_list_tex += fill_latex_homework_macro(homework_ex['title'],
@@ -148,11 +163,15 @@ def render_latex_template(compilename, sheetinfo, inclass_list_extended, homewor
         if render_solution:
             homework_list_tex += '\n'
             homework_list_tex += fill_latex_solution_macro(homework_ex['sol'])
-
+        if render_annotations and os.path.isfile(homework_ex['annotation']):
+            homework_list_tex += '\n'
+            homework_list_tex += fill_latex_annotation_macro(homework_ex['annotation'])
 
     class_options_list = []
     if render_solution: 
         class_options_list.append('Loesungen')
+    if render_annotations: 
+        class_options_list.append('Punkte')
     class_options = ','.join(class_options_list)
     # parse template
     output_from_rendered_template = template.render(classoptions=class_options,
@@ -246,14 +265,16 @@ if __name__ == '__main__':
         
         if args.build_exercise: 
             compilename = sheetinfo['compilename']
-            render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, render_solution=False)   
+            render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, render_solution=False, render_annotations=False)   
             build_latex_document(compilename, sheetinfo)        
         if args.build_solution: 
             compilename = sheetinfo['compilename'] + '_solution'
-            render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, render_solution=True)
+            render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, render_solution=True, render_annotations=False)
             build_latex_document(compilename, sheetinfo)
         if args.build_annotation:
-            logger.warning('Annotation not implemented yet')
+            compilename = sheetinfo['compilename'] + '_annotation'
+            render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, render_solution=True, render_annotations=True)
+            build_latex_document(compilename, sheetinfo)
             
         logger.info('Creation of %s successfull', sheetinfo['compilename'])
     except Exception as ex:
