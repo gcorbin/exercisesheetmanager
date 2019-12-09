@@ -17,4 +17,5 @@
 !resources/
 
 ## explicitly exclude 
+/**/bld/
 /**/build/
