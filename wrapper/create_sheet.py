@@ -31,7 +31,7 @@ def load_sheet_data():
     args = parser.parse_args()
 
     if os.path.splitext(args.sheetinfo)[1] == '.ini':
-        config = configparser.ConfigParser()
+        config = configparser.SafeConfigParser(interpolation=configparser.ExtendedInterpolation())
         config.read(args.sheetinfo)
         sheetinfo = config['sheet_info']
         sheetinfo['build_folder'] = sheetinfo.get('build_folder', './build/')
