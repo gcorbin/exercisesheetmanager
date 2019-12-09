@@ -27,8 +27,12 @@ def load_sheet_data():
     parser = argparse.ArgumentParser(description='Create exercise sheet.')
     parser.add_argument('sheetinfo', type=str,
                         help='py file containing sheet information')
-    parser.add_argument('-s', '--solutionflag', action='store_true')
+    parser.add_argument('-e', '--build-exercise', action='store_true')
+    parser.add_argument('-s', '--build-solution', action='store_true')
+    parser.add_argument('-a', '--build-annotation', action='store_true')
     args = parser.parse_args()
+    if not args.build_exercise and not args.build_solution and not args.build_annotation: 
+        args.build_exercise = True
 
     if os.path.splitext(args.sheetinfo)[1] == '.ini':
         config = configparser.SafeConfigParser(interpolation=configparser.ExtendedInterpolation())
@@ -120,7 +124,7 @@ def fill_latex_solution_macro(ex_source):
                                      tex_utils.tex_command('input', [ex_source]))
                                      
 
-def render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution):
+def render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, render_solution):
     # Jinja2 magic to parse latex template
     latex_jinja_env = jinja2.Environment(variable_start_string='\VAR{',
                                          variable_end_string='}',
@@ -133,7 +137,7 @@ def render_latex_template(compilename, sheetinfo, inclass_list_extended, homewor
     for inclass_ex in inclass_list_extended:
         inclass_list_tex += fill_latex_inclass_macro(inclass_ex['title'],
                                                         inclass_ex['ex'])
-        if print_solution:
+        if render_solution:
             inclass_list_tex += '\n'
             inclass_list_tex += fill_latex_solution_macro(inclass_ex['sol'])
 
@@ -141,7 +145,7 @@ def render_latex_template(compilename, sheetinfo, inclass_list_extended, homewor
         homework_list_tex += fill_latex_homework_macro(homework_ex['title'],
                                                         homework_ex['ex'],
                                                         homework_ex['pt'])
-        if print_solution:
+        if render_solution:
             homework_list_tex += '\n'
             homework_list_tex += fill_latex_solution_macro(homework_ex['sol'])
 
@@ -234,13 +238,16 @@ if __name__ == '__main__':
         
         os_utils.make_directories_if_nonexistent(sheetinfo['build_folder'])
         
-        compilename = sheetinfo['compilename']
-        render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution=False)   
-        build_latex_document(compilename, sheetinfo)        
-        if args.solutionflag: 
+        if args.build_exercise: 
+            compilename = sheetinfo['compilename']
+            render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, render_solution=False)   
+            build_latex_document(compilename, sheetinfo)        
+        if args.build_solution: 
             compilename = sheetinfo['compilename'] + '_solution'
-            render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, print_solution=True)
+            render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, render_solution=True)
             build_latex_document(compilename, sheetinfo)
+        if args.build_annotation:
+            logger.warning('Annotation not implemented yet')
             
         logger.info('Creation of %s successfull', sheetinfo['compilename'])
     except Exception as ex:
