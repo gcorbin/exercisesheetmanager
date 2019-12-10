@@ -11,9 +11,10 @@
 %			Raum 48-557
 %
 %   modifiziert:
-%   20.10.2018, Matthias Andres, TUK, mandres@mathematik.uni-kl.de; manueller Übungsblattname (Präsenz, Hausübung)
+%   -20.10.2018, Matthias Andres, TUK, mandres@mathematik.uni-kl.de; manueller Übungsblattname (Präsenz, Hausübung)
 %     																										 manueller Name der deadline,
 %																											 loesungen interface
+%   -Gregor Corbin, TUK, corbin@mathematik.uni-kl.de
 %
 %	Die Nutzung ist jedem zur Verwendung in beliebigen Veranstaltungen des
 %	Fachbereichs gestattet. Die Gestaltung ist an das Corporate Design der
@@ -27,19 +28,16 @@
 %	1. \documentclass{fbmatheblatt}
 %
 %	2. Veranstaltungsdaten setzen:
-%		\Veranstaltung{<Veranstaltungsname Semester>}
+%		\Veranstaltung{<Veranstaltungsname>}
+%       \Semester{<Semester>}
 %		\Dozenten{<Name1>\\<Name2>}
+%        ...
 %
 %	3. \begin{document}
 %
 %	4. Neues Blatt anlegen:
-%		4.1 Optional Abgabedaten setzen:
-%			\Daten{Erscheinungsdatum}{Abgabedatum\\Abgabezeit}{Name der deadline}{Manueller Blattname}{Manuelle Blattnummer}
-%       z.B. \Daten{10.04.2018}{17.04.2018}{Abgabe am: }{Pr\"{a}senzblatt }{1}
-%
 %		4.2 Blatt anlegen mit Umgebung:
-%			\begin{Blatt}{<TexFile mit Hinweisen>}
-%
+%			\begin{Blatt}%
 %				4.2.1 Aufgaben einbinden mit Umgebung:
 %					\begin{Aufgabe}{<Titel>}{<Punkte>}
 %
@@ -57,8 +55,8 @@
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % DEFINIERTE BEFEHLE:
 %
-%	- \bemerkung{Text}:
-%		Eine mit Blattnummer nummerierte, blaue Bemerkungsbox
+%	- \Hinweis{Text}:
+%		Eine mit Blattnummer nummerierte, blaue Hinweisbox
 %
 %	- \hervor{Text}:
 %		Kursiv und farbig hervorgehobener Text
@@ -72,15 +70,25 @@
 %	- \bild{Text}
 %		Ersetzt \caption{} in Figures
 %
-%	- \figureref{label}
+%	- \bildref{label}
 %		Referenziere im Text auf eine Abbildung mit label label
 %
 %	- \lstref{label}
 %		Referenziere im Text auf Listing mit label label
 %
-%	- \myhref{url}{beschreibung}
+%	- \weblink{url}{beschreibung}
 %		Farbiger Hyperlink mit Text beschreibung auf Seite url
 %
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% UMGEBUNGEN:
+% 
+%	- Blatt
+% 	- Disclaimer (Ein roter Text, der auf Formalitäten zur Abgabe hinweist)
+%   - Aufgabe (Für Präsenzübungen o.ä., hat keine Punkte)
+% 	- Hausaufgabe (für Hausaufgaben o.ä., hat ein extra Argument, um in Klammern die Punkte anzuzeigen)
+% 	- Loesung (wird mit der Klassenoption 'Loesungen' aktiviert, ansonsten auskommentiert)
+% 	- Punkte (Um Bepunktungshinweise für Tutoren zu geben, ist nur aktiv, wenn die Optionen 'Loesungen' und 'Punkte' gegeben sind)
+% 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % EINBINDEN VON QUELLTEXT
 %
@@ -105,7 +113,7 @@
 
 \LoadClass{scrartcl}
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{fbmatheblattEWP}[2016/04/29 Uebungsblatt FB Mathematik]
+\ProvidesClass{fbmatheblatt}[2019/12/10 Uebungsblatt FB Mathematik]
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % PAKETE
@@ -377,19 +385,17 @@
 \fi
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% BEMERKUNGSBOX
-% Bemerkungsbox
-\newcounter{remarks}[blatt]
-\renewcommand{\theremarks}{\theblatt.\arabic{remarks}}
-% Box
-\newcommand{\bemerkung}[1]{
-	\refstepcounter{remarks}
+% HINWEISBOX
+\newcounter{hinweise}[blatt]
+\renewcommand{\thehinweise}{\theblatt.\arabic{hinweise}}
+\newcommand{\Hinweis}[1]{
+	\refstepcounter{hinweise}
 	\begin{center}
 		\colorbox{tuklblau!10}{
 		\begin{minipage}{0.85\textwidth}
 			\begin{center}
 			\textcolor{tuklblau}{
-				\textbf{\Large \Hinweisname{} \theremarks}}\\ \textcolor{black}{#1}
+				\textbf{\Large \Hinweisname{} \thehinweise}}\\ \textcolor{black}{#1}
 			\end{center}
 		\end{minipage}}
 	\end{center}
@@ -399,8 +405,13 @@
 % SONSTIGE BEFEHLE
 
 % Links
-\newcommand{\myhref}[2]{
-	\href{#1}{\textcolor{tuklblau}{#2}}
+\newcommand{\weblink}[2]{
+	\href{#1}{\textcolor{tuklblau}{%
+			\ifx#2{}%
+				#2%
+			\else 
+				#1%
+			\fi}}
 }
 
 % Referenz auf einen Aufgabenteil
