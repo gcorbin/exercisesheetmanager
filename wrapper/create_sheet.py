@@ -35,13 +35,14 @@ def load_sheet_data():
         args.build_exercise = True
 
     if os.path.splitext(args.sheetinfo)[1] == '.ini':
-        config = configparser.SafeConfigParser(interpolation=configparser.ExtendedInterpolation())
+        config = configparser.SafeConfigParser(interpolation=configparser.BasicInterpolation())
+        if not os.path.isfile(args.sheetinfo):
+            logger.critical('The ini file %s does not exist', args.sheetinfo)
+            raise OSError('File not found %s', args.sheetinfo)
         config.read(args.sheetinfo)
         sheetinfo = config['sheet_info']
         sheetinfo['build_folder'] = sheetinfo.get('build_folder', './build/')
         sheetinfo['ini_name'] = os.path.splitext(os.path.split(args.sheetinfo)[1])[0] 
-        #inclass = config['inclass']
-        #homework = config['homework']
         exercises = config['exercises']
     else:
         raise ValueError('Filename needs to be in the <myfile.ini>!!!')
