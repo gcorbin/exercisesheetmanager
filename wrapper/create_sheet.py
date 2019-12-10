@@ -40,53 +40,76 @@ def load_sheet_data():
         sheetinfo = config['sheet_info']
         sheetinfo['build_folder'] = sheetinfo.get('build_folder', './build/')
         sheetinfo['ini_name'] = os.path.splitext(os.path.split(args.sheetinfo)[1])[0] 
-        inclass = config['inclass']
-        homework = config['homework']
+        #inclass = config['inclass']
+        #homework = config['homework']
+        exercises = config['exercises']
     else:
         raise ValueError('Filename needs to be in the <myfile.ini>!!!')
     if not config.has_option('sheet_info', 'compilename'):
         raise KeyError("The 'sheet_info.compilename' option must be set in the config file")
 
-    return sheetinfo, inclass, homework, args
+    return sheetinfo, exercises, args
 
 
-def make_exercise_info(title, ex, sol, pt, an):
+def make_exercise_info_dict(title, ex, sol, pt, an):
     # data structure for exercise, consisting of
     # title, exercise file, solution file, string with points (e.g. 2+2)
     return {'title': title, 'ex': ex, 'sol': sol, 'pt': pt, 'annotation':an}
 
 
-def make_exercise_lists(sheetinfo, inclass, homework):
-    # empty dictionary, for extended dictionary with solution
-    # 0 points for inclass, won't be printed paths
-    inclass_list_extended = []
-    homework_list_extended = []
-    for (key, value) in inclass.items():
-        title, filename = [x.strip() for x in value.split('&&')]        
-        path_to_ex = os.path.abspath(os.path.join(sheetinfo['path_to_res'], filename, 'exercise.tex'))
-        path_to_sol = os.path.abspath(os.path.join(sheetinfo['path_to_res'], filename, 'solution.tex'))
-        path_to_ann = os.path.abspath(sheetinfo['ini_name'] + '_' + filename + '.tex')
-        inclass_list_extended.append(make_exercise_info(title,
-                                                        path_to_ex,
-                                                        path_to_sol,
-                                                        '0',
-                                                        path_to_ann))
+def make_exercise_lists(sheetinfo, exercises):
+    exercise_list = []
+    for (key, value) in exercises.items():
+        exercise_info = [x.strip() for x in value.split('&&')]
+        if len(exercise_info) < 2: 
+            logger.error('Skipping exercise %s due to incomplete specification.', key)
+            continue
+        ex_type = exercise_info[0]
+        if ex_type != 'homework' and ex_type != 'inclass':
+            logger.error('%s: Unsupported exercise type "%s". Fallback to inclass.', key, ex_type)
+            ex_type = 'inclass'
+            
+        exercise_name = exercise_info[1]            
+        path_to_ex = os.path.abspath(os.path.join(sheetinfo['path_to_res'], exercise_name, 'exercise.tex'))
+        path_to_sol = os.path.abspath(os.path.join(sheetinfo['path_to_res'], exercise_name, 'solution.tex'))
+        path_to_ann = os.path.abspath(sheetinfo['ini_name'] + '_' + key + '.tex')
+        
+        if not os.path.isfile(path_to_ex): 
+            logger.debug('%s: File not found: %.s', key, path_to_ex)
+            logger.error('Skipping nonexistent exercise: %s.', exercise_name)
+            continue
+        if not os.path.isfile(path_to_sol): 
+            logger.debug('%s: File not found: %s.', key, path_to_sol)
+            logger.warning('The exercise %s does not have a solution.', exercise_name)
+            path_to_sol = None
+        if not os.path.isfile(path_to_ann): 
+            logger.debug('%s: File not found: %s.', key, path_to_ann)
+            logger.debug('%s: No annotation is attached to exercise %s.', key, exercise_name)
+            path_to_ann = None
+            
+        if len(exercise_info) >= 3: 
+            exercise_title = exercise_info[2]
+        else:
+            exercise_title = ''
+        if len(exercise_info) >= 4: 
+            exercise_points = exercise_info[3]
+            if ex_type == 'inclass':
+                logger.warning('%s: Points given for "inclass" exercise %s will be ignored.', key, exercise_name)
+        else:
+            exercise_points = ''
+        if len(exercise_info) > 4: 
+            logger.warning('%s: Extra arguments will be ignored.', key)
+        exercise_info_dict = {'type': ex_type, 
+                              'title': exercise_title,
+                              'exercise': path_to_ex, 
+                              'solution': path_to_sol,
+                              'annotation': path_to_ann, 
+                              'points': exercise_points}
+        exercise_list.append(exercise_info_dict)
+    return exercise_list
 
-    for (key, value) in homework.items():
-        title, filename, points = [x.strip() for x in value.split('&&')]
-        path_to_ex = os.path.abspath(os.path.join(sheetinfo['path_to_res'], filename, 'exercise.tex'))
-        path_to_sol = os.path.abspath(os.path.join(sheetinfo['path_to_res'], filename, 'solution.tex'))
-        path_to_ann = os.path.abspath(sheetinfo['ini_name'] + '_' + filename + '.tex')
-        homework_list_extended.append(make_exercise_info(title,
-                                                         path_to_ex,
-                                                         path_to_sol,
-                                                         points, 
-                                                         path_to_ann))
 
-    return inclass_list_extended, homework_list_extended
-
-
-def print_sheetinfo(sheetinfo, inclass_list_extended, homework_list_extended):
+def print_sheetinfo(sheetinfo, exercise_list):
     # print information of sheet
     print('\n')
     print('lecture:\t\t' + sheetinfo.get('lecture', 'name of lecture'))
@@ -98,39 +121,42 @@ def print_sheetinfo(sheetinfo, inclass_list_extended, homework_list_extended):
     print('sheetname:\t\t' + sheetinfo.get('sheetname',  'Blatt'))
     print('disclaimer:\t\t' + sheetinfo.get('disclaimer', 'empty_disclaimer'))
     print('compilename:\t\t' + sheetinfo['compilename'])
-    print('inclass_src:\t\t')
-    for inclass_ex in inclass_list_extended:
-        print('\t\t\t' + inclass_ex['ex'])
-    print('homework_src:\t\t')
-    for homework_ex in homework_list_extended:
-        print('\t\t\t' + homework_ex['ex'])
+    print('resource:\t\t' + sheetinfo['path_to_res'])
+    print('exercises:\t\t')
+    for ex_info in exercise_list:
+        print('\t\t\t' + ex_info['type'] + ' : ' + ex_info['title'])
     print('\n')
 
 
-def fill_latex_inclass_macro(ex_name, ex_source):
-    return tex_utils.tex_environment('Aufgabe',
-                                     [tex_utils.tex_command('input', [ex_source])],
-                                     [ex_name])
+def fill_latex_exercise_macro(ex_info):
+    if ex_info['type'] == 'homework': 
+        return tex_utils.tex_environment('Hausaufgabe', 
+                                         tex_utils.tex_command('input', [ex_info['exercise']]), 
+                                         [ex_info['title'], ex_info['points']])
+    elif ex_info['type'] == 'inclass': 
+        return tex_utils.tex_environment('Aufgabe', 
+                                         tex_utils.tex_command('input', [ex_info['exercise']]), 
+                                         [ex_info['title']])
+    else:
+        raise ValueError('Unsupported exercise type %s', ex_info['type'])
 
 
-def fill_latex_homework_macro(ex_name, ex_source, ex_points):
-    return tex_utils.tex_environment('Hausaufgabe', 
-                                     tex_utils.tex_command('input', [ex_source]), 
-                                     [ex_name, ex_points])
+def fill_latex_solution_macro(ex_info):
+    if ex_info['solution'] is not None: 
+        return tex_utils.tex_environment('Loesung',
+                                         tex_utils.tex_command('input', [ex_info['solution']]))
+    return ''
 
 
-def fill_latex_solution_macro(ex_source):
-    return tex_utils.tex_environment('Loesung',
-                                     tex_utils.tex_command('input', [ex_source]))
-
-
-def fill_latex_annotation_macro(ex_source): 
-    return tex_utils.tex_environment('Punkte', 
-                                     tex_utils.tex_command('input', [ex_source]))
+def fill_latex_annotation_macro(ex_info): 
+    if ex_info['annotation'] is not None: 
+        return tex_utils.tex_environment('Punkte', 
+                                          tex_utils.tex_command('input', [ex_info['annotation']]))
+    return ''
 
 
 def render_latex_template(compilename, sheetinfo,
-                          inclass_list_extended, homework_list_extended,
+                          exercise_list,
                           render_solution, render_annotations):
     # Jinja2 magic to parse latex template
     latex_jinja_env = jinja2.Environment(variable_start_string='\VAR{',
@@ -139,28 +165,13 @@ def render_latex_template(compilename, sheetinfo,
                                          loader=jinja2.FileSystemLoader(sheetinfo['tex_root']))
     template = latex_jinja_env.get_template(sheetinfo['main_template'])
 
-    inclass_list_tex = ''
-    homework_list_tex = ''
-    for inclass_ex in inclass_list_extended:
-        inclass_list_tex += fill_latex_inclass_macro(inclass_ex['title'],
-                                                        inclass_ex['ex'])
-        if render_solution:
-            inclass_list_tex += '\n'
-            inclass_list_tex += fill_latex_solution_macro(inclass_ex['sol'])
-        if render_annotations and os.path.isfile(inclass_ex['annotation']):
-            inclass_list_tex += '\n'
-            inclass_list_tex += fill_latex_annotation_macro(inclass_ex['annotation'])
-
-    for homework_ex in homework_list_extended:
-        homework_list_tex += fill_latex_homework_macro(homework_ex['title'],
-                                                        homework_ex['ex'],
-                                                        homework_ex['pt'])
-        if render_solution:
-            homework_list_tex += '\n'
-            homework_list_tex += fill_latex_solution_macro(homework_ex['sol'])
-        if render_annotations and os.path.isfile(homework_ex['annotation']):
-            homework_list_tex += '\n'
-            homework_list_tex += fill_latex_annotation_macro(homework_ex['annotation'])
+    exercise_list_tex = ''
+    for ex_info in exercise_list:
+        exercise_list_tex += fill_latex_exercise_macro(ex_info)
+        if render_solution: 
+            exercise_list_tex += fill_latex_solution_macro(ex_info)
+        if render_annotations: 
+            exercise_list_tex += fill_latex_annotation_macro(ex_info)
 
     class_options_list = []
     if render_solution: 
@@ -179,8 +190,7 @@ def render_latex_template(compilename, sheetinfo,
                                                     disclaimer=sheetinfo.get('disclaimer', 'empty_disclaimer'),
                                                     deadlinetext=sheetinfo.get('deadlinetext', 'deadline: '),
                                                     path_to_res=os.path.abspath(sheetinfo.get('path_to_res', './')),
-                                                    inputlist=inclass_list_tex
-                                                              + homework_list_tex)
+                                                    inputlist=exercise_list_tex)
 
     # remove old files from build folder
     old_files = os.listdir(sheetinfo['build_folder'])
@@ -252,23 +262,26 @@ if __name__ == '__main__':
     set_default_logging_behavior(logfile='create_sheet')
     
     try: 
-        sheetinfo, inclass, homework, args = load_sheet_data()
-        inclass_list_extended, homework_list_extended = make_exercise_lists(sheetinfo, inclass, homework)
-        print_sheetinfo(sheetinfo, inclass_list_extended, homework_list_extended)
+        sheetinfo, exercises, args = load_sheet_data()
+        exercise_list = make_exercise_lists(sheetinfo, exercises)
+        print_sheetinfo(sheetinfo, exercise_list)
         
         os_utils.make_directories_if_nonexistent(sheetinfo['build_folder'])
         
         if args.build_exercise: 
             compilename = sheetinfo['compilename']
-            render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, render_solution=False, render_annotations=False)   
+            render_latex_template(compilename, sheetinfo, exercise_list,
+                                  render_solution=False, render_annotations=False)   
             build_latex_document(compilename, sheetinfo)        
         if args.build_solution: 
             compilename = sheetinfo['compilename'] + '_solution'
-            render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, render_solution=True, render_annotations=False)
+            render_latex_template(compilename, sheetinfo, exercise_list, 
+                                  render_solution=True, render_annotations=False)
             build_latex_document(compilename, sheetinfo)
         if args.build_annotation:
             compilename = sheetinfo['compilename'] + '_annotation'
-            render_latex_template(compilename, sheetinfo, inclass_list_extended, homework_list_extended, render_solution=True, render_annotations=True)
+            render_latex_template(compilename, sheetinfo, exercise_list, 
+                                  render_solution=True, render_annotations=True)
             build_latex_document(compilename, sheetinfo)
             
         logger.info('Creation of %s successfull', sheetinfo['compilename'])

@@ -137,7 +137,6 @@
 % Aufgabencounter
 \newcounter{aufgaben}[blatt]
 \renewcommand{\theaufgaben}{\theblatt.\arabic{aufgaben}}
-
 \newcounter{hausaufgaben}[blatt]
 \renewcommand{\thehausaufgaben}{\theblatt.\arabic{hausaufgaben}}
 \newcounter{loesungen}[blatt]
@@ -149,7 +148,6 @@
 \DeclareOption{Loesungen}{%
 	\renewenvironment{Loesung}{%
 		\refstepcounter{loesungen}
-		\par\hrulefill
 		\subsection*{L\"{o}sung}
 	}{}%
 	\loesungtrue
@@ -309,12 +307,6 @@
 		\fi%
 	}}
 }{}
-
-%\newenvironment{HausaufgabeNoDiscussion}[1]{
-%	\refstepcounter{hausaufgaben}
-%	\par\hrulefill
-%	\subsection*{Hausaufgabe \thehausaufgaben: \textit{#1} }
-%}{}
 
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
