@@ -109,19 +109,14 @@ def print_sheetinfo(sheetinfo, inclass_list_extended, homework_list_extended):
 
 def fill_latex_inclass_macro(ex_name, ex_source):
     return tex_utils.tex_environment('Aufgabe',
-                                 [tex_utils.tex_command('input', [ex_source])],
-                                 [ex_name])
+                                     [tex_utils.tex_command('input', [ex_source])],
+                                     [ex_name])
 
 
 def fill_latex_homework_macro(ex_name, ex_source, ex_points):
-    if ex_points == 'no_discussion': 
-       return tex_utils.tex_environment('HausaufgabeNoDiscussion', 
-                                  tex_utils.tex_command('input', [ex_source]), 
-                                  [ex_name])
-    else:
-        return tex_utils.tex_environment('Hausaufgabe', 
-                                  tex_utils.tex_command('input', [ex_source]), 
-                                  [ex_name, ex_points])
+    return tex_utils.tex_environment('Hausaufgabe', 
+                                     tex_utils.tex_command('input', [ex_source]), 
+                                     [ex_name, ex_points])
 
 
 def fill_latex_solution_macro(ex_source):

@@ -147,11 +147,11 @@
 \loesungfalse
 \newenvironment{Loesung}{\comment}{\endcomment}
 \DeclareOption{Loesungen}{%
-		\renewenvironment{Loesung}{%
-			\refstepcounter{loesungen}
-			\par\hrulefill
-			\subsection*{L\"{o}sung}
-		}{}%
+	\renewenvironment{Loesung}{%
+		\refstepcounter{loesungen}
+		\par\hrulefill
+		\subsection*{L\"{o}sung}
+	}{}%
 	\loesungtrue
 }
 
@@ -161,11 +161,11 @@
 \newcommand{\punkte}[1]{}
 \DeclareOption{Punkte}{%
 	\ifloesung%
-	\renewenvironment{Punkte}{
-		\subsection*{Punktevergabe}
-	}{}%
-	\renewcommand{\punkte}[1]{\hfill \mbox{#1 Punkte}}
-	\punktetrue
+		\renewenvironment{Punkte}{
+			\subsection*{Punktevergabe}
+		}{}%
+		\renewcommand{\punkte}[1]{\hfill \mbox{#1 Punkte}}
+		\punktetrue
 	\fi
 }
 \ProcessOptions\relax
@@ -297,37 +297,24 @@
 	\refstepcounter{aufgaben}
 	\par\hrulefill
 	\subsection*{Aufgabe \theaufgaben: \textit{#1 }}
-	%\begin{minipage}{\textwidth}
-
-}{}%\hrulefill}
-
+}{}
 
 \newenvironment{Hausaufgabe}[2]{
 	\refstepcounter{hausaufgaben}
 	\par\hrulefill
-	\subsection*{Hausaufgabe \thehausaufgaben: \textit{#1 (#2)} }
-	%\begin{minipage}{\textwidth}
+	\subsection*{Hausaufgabe \thehausaufgaben: \textit{#1%
+		\ifx#2%
+		\else%
+		(#2)%
+		\fi%
+	}}
+}{}
 
-}{}%\hrulefill}
-
-\newenvironment{HausaufgabeNoDiscussion}[1]{
-	\refstepcounter{hausaufgaben}
-	\par\hrulefill
-	\subsection*{Hausaufgabe \thehausaufgaben: \textit{#1} }
-	%\begin{minipage}{\textwidth}
-	
-}{}%\hrulefill}
-
-
-%\newenvironment{Loesung}{
-%	\refstepcounter{loesungen}
-%	\hrulefill
-%	\subsection*{L\"{o}sung: }
-%	%\subsection*{L\"{o}sung  \theloesungen: }
-%	%\begin{minipage}{\textwidth}
-%	
-%}{}%\hrulefill}
-
+%\newenvironment{HausaufgabeNoDiscussion}[1]{
+%	\refstepcounter{hausaufgaben}
+%	\par\hrulefill
+%	\subsection*{Hausaufgabe \thehausaufgaben: \textit{#1} }
+%}{}
 
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
@@ -374,6 +361,11 @@
 % Links
 \newcommand{\myhref}[2]{
 	\href{#1}{\textcolor{tuklblau}{#2}}
+}
+
+% Referenz auf einen Aufgabenteil
+\newcommand{\teilref}[1]{
+	\ref{#1}) %
 }
 
 % Texthervorhebung
