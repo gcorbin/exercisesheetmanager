@@ -52,12 +52,6 @@ def load_sheet_data():
     return sheetinfo, exercises, args
 
 
-def make_exercise_info_dict(title, ex, sol, pt, an):
-    # data structure for exercise, consisting of
-    # title, exercise file, solution file, string with points (e.g. 2+2)
-    return {'title': title, 'ex': ex, 'sol': sol, 'pt': pt, 'annotation':an}
-
-
 def make_exercise_lists(sheetinfo, exercises):
     exercise_list = []
     for (key, value) in exercises.items():
@@ -111,7 +105,6 @@ def make_exercise_lists(sheetinfo, exercises):
 
 
 def print_sheetinfo(sheetinfo, exercise_list):
-    # print information of sheet
     print('\n')
     print('lecture:\t\t' + sheetinfo.get('lecture', 'name of lecture'))
     print('lecturer:\t\t' + sheetinfo.get('lecturer', 'name of lecturer'))
@@ -207,11 +200,8 @@ def render_latex_template(compilename, sheetinfo,
 def build_latex_document(compilename, sheetinfo):
     build_dir = os.path.abspath(sheetinfo['build_folder'])
     build_file = os.path.join(build_dir, compilename)
-    
-    # build latex document
     latex_command = ['pdflatex', '-synctex=1', '-interaction=nonstopmode', '--shell-escape',
-                    '--output-directory='+build_dir, build_file]
-    
+                    '--output-directory='+build_dir, build_file]    
     bibtex_command = ['bibtex', compilename]
     
     logger.info('Compiling Latex Document %s', compilename)
@@ -238,6 +228,9 @@ def build_latex_document(compilename, sheetinfo):
         logger.error('Error during compilation of latex document. Exit status: %s', ex.returncode)
         logger.info('Errors from latex log file follow:')
         try: 
+            # go through the latex log file line by line 
+            # when a line starts with '!', it is a latex error
+            # display the line and the following lines for context
             with open(build_file + '.log', 'r') as texlog: 
                 try: 
                     while True: 
@@ -252,8 +245,8 @@ def build_latex_document(compilename, sheetinfo):
                                     i = 0
                                 else: 
                                     i += 1
-                except StopIteration:
-                    pass
+                except StopIteration: 
+                    pass # happens when the end of file is reached
         except OSError: 
             logger.warning('Could not open tex log file %s', os.path.join(build_file,'.log'))
         raise ex
