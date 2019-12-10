@@ -41,6 +41,7 @@ def load_sheet_data():
             raise OSError('File not found %s', args.sheetinfo)
         config.read(args.sheetinfo)
         sheetinfo = config['sheet_info']
+        sheetinfo['language'] = sheetinfo.get('language', 'German')
         sheetinfo['build_folder'] = sheetinfo.get('build_folder', './build/')
         sheetinfo['ini_name'] = os.path.splitext(os.path.split(args.sheetinfo)[1])[0] 
         exercises = config['exercises']
@@ -172,6 +173,7 @@ def render_latex_template(compilename, sheetinfo,
         class_options_list.append('Loesungen')
     if render_annotations: 
         class_options_list.append('Punkte')
+    class_options_list.append(sheetinfo['language'])
     class_options = ','.join(class_options_list)
     # parse template
     output_from_rendered_template = template.render(classoptions=class_options,

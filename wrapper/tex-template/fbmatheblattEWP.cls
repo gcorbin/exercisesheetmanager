@@ -127,6 +127,44 @@
 \RequirePackage{xifthen}
 \RequirePackage{verbatim} % für die macros \comment und \endcomment
 
+\newif\ifenglish
+\englishfalse %Default: german
+
+\DeclareOption{English}{\englishtrue}
+\DeclareOption{German}{\englishfalse}
+
+
+\newif\ifloesung
+\loesungfalse
+\DeclareOption{Loesungen}{\loesungtrue}
+
+\newif\ifpunkte
+\punktefalse
+\DeclareOption{Punkte}{\punktetrue}
+
+
+\ProcessOptions\relax
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% Anzeigenamen für Umbegungen
+\newcommand{\Blattname}{Blatt}
+\newcommand{\Aufgabenname}{Aufgabe}
+\newcommand{\Hausaufgabenname}{Hausaufgabe}
+\newcommand{\Loesungsname}{L\"{o}sung}
+\newcommand{\Punktename}{Punktevergabe}
+\newcommand{\Hinweisname}{Hinweis}
+\newcommand{\Seitenname}{Seite}
+
+\ifenglish
+\renewcommand{\Blattname}{Sheet}
+\renewcommand{\Aufgabenname}{Exercise}
+\renewcommand{\Hausaufgabenname}{Homework}
+\renewcommand{\Loesungsname}{Solution}
+\renewcommand{\Punktename}{Grading}
+\renewcommand{\Hinweisname}{Hint}
+\renewcommand{\Seitenname}{Page}
+\fi
+
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % EIGENE COUNTER
 
@@ -141,32 +179,6 @@
 \renewcommand{\thehausaufgaben}{\theblatt.\arabic{hausaufgaben}}
 \newcounter{loesungen}[blatt]
 \renewcommand{\theloesungen}{\theblatt.\arabic{loesungen}}
-
-\newif\ifloesung
-\loesungfalse
-\newenvironment{Loesung}{\comment}{\endcomment}
-\DeclareOption{Loesungen}{%
-	\renewenvironment{Loesung}{%
-		\refstepcounter{loesungen}
-		\subsection*{L\"{o}sung}
-	}{}%
-	\loesungtrue
-}
-
-\newif\ifpunkte
-\punktefalse
-\newenvironment{Punkte}{\comment}{\endcomment}
-\newcommand{\punkte}[1]{}
-\DeclareOption{Punkte}{%
-	\ifloesung%
-		\renewenvironment{Punkte}{
-			\subsection*{Punktevergabe}
-		}{}%
-		\renewcommand{\punkte}[1]{\hfill \mbox{#1 Punkte}}
-		\punktetrue
-	\fi
-}
-\ProcessOptions\relax
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % FARBDEFINITIONEN
@@ -281,7 +293,7 @@
 % BEFEHL FÜR BLATT
 \newenvironment{Blatt}[1]{
 	\refstepcounter{blatt}
-	\section*{\centering \LARGE \Blattname \theblatt}
+	\section*{\centering \LARGE \Blattname{} \theblatt}
 	\begin{center}
 		\begin{minipage}{0.9\textwidth}
 			\color{tuklrot}\input{#1}
@@ -294,13 +306,13 @@
 \newenvironment{Aufgabe}[1]{
 	\refstepcounter{aufgaben}
 	\par\hrulefill
-	\subsection*{Aufgabe \theaufgaben: \textit{#1 }}
+	\subsection*{\Aufgabenname{} \theaufgaben: \textit{#1 }}
 }{}
 
 \newenvironment{Hausaufgabe}[2]{
 	\refstepcounter{hausaufgaben}
 	\par\hrulefill
-	\subsection*{Hausaufgabe \thehausaufgaben: \textit{#1%
+	\subsection*{\Hausaufgabenname{} \thehausaufgaben: \textit{#1%
 		\ifx#2%
 		\else%
 		(#2)%
@@ -308,6 +320,21 @@
 	}}
 }{}
 
+
+\newenvironment{Loesung}{\comment}{\endcomment}
+\newenvironment{Punkte}{\comment}{\endcomment}
+
+\ifloesung
+	\renewenvironment{Loesung}{%
+		\refstepcounter{loesungen}
+		\subsection*{\Loesungsname{}}
+	}{}%
+	\ifpunkte
+		\renewenvironment{Punkte}{
+			\subsection*{\Punktename{}}
+		}{}%
+	\fi
+\fi
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % BEMERKUNGSBOX
@@ -322,7 +349,7 @@
 		\begin{minipage}{0.85\textwidth}
 			\begin{center}
 			\textcolor{tuklblau}{
-				\textbf{\Large Hinweis \theremarks}}\\ \textcolor{black}{#1}
+				\textbf{\Large \Hinweisname \theremarks}}\\ \textcolor{black}{#1}
 			\end{center}
 		\end{minipage}}
 	\end{center}
@@ -341,10 +368,14 @@
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % DATEN FÜR BLATT SETZEN
 \newcommand{\Daten}[5]{
-	\ohead{#1\\Seite \pagemark /\pageref{LastPage}}
-	\ofoot{\begin{tabular}{ll}
-					\makecell{#3} & \makecell{#2}
-					\end{tabular}}\setcounter{blatt}{\numexpr #5 -1} \newcommand{\Blattname}{#4 }
+	\ohead{#1\\ \Seitenname \pagemark /\pageref{LastPage}}
+	\ofoot{%
+		\begin{tabular}{ll}
+			\makecell{#3} & \makecell{#2}
+		\end{tabular}
+	}
+	\setcounter{blatt}{\numexpr #5 -1}
+	\renewcommand{\Blattname}{#4 }
 }
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
