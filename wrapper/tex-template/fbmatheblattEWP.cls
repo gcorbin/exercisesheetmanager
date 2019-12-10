@@ -294,12 +294,17 @@
 \newenvironment{Blatt}[1]{
 	\refstepcounter{blatt}
 	\section*{\centering \LARGE \Blattname{} \theblatt}
-	\begin{center}
-		\begin{minipage}{0.9\textwidth}
-			\color{tuklrot}\input{#1}
+}{\newpage}
+
+\newcommand{\disclaimerStil}{\color{tuklrot}}
+\newenvironment{Disclaimer}{%
+	\begin{center}%
+		\begin{minipage}{0.9\textwidth}%
+			\disclaimerStil
+		}{%
 		\end{minipage}
 	\end{center}
-}{\newpage}
+}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % BEFEHL FÜR AUFGABE

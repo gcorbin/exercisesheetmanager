@@ -42,6 +42,7 @@ def load_sheet_data():
         config.read(args.sheetinfo)
         sheetinfo = config['sheet_info']
         sheetinfo['language'] = sheetinfo.get('language', 'German')
+        sheetinfo['disclaimer'] = sheetinfo.get('disclaimer', '')
         sheetinfo['build_folder'] = sheetinfo.get('build_folder', './build/')
         sheetinfo['ini_name'] = os.path.splitext(os.path.split(args.sheetinfo)[1])[0] 
         exercises = config['exercises']
@@ -159,6 +160,11 @@ def render_latex_template(compilename, sheetinfo,
                                          autoescape=False,
                                          loader=jinja2.FileSystemLoader(sheetinfo['tex_root']))
     template = latex_jinja_env.get_template(sheetinfo['main_template'])
+    
+    disclaimer_tex = ''
+    if sheetinfo['disclaimer'] != '': 
+        disclaimer_file = os.path.abspath(sheetinfo['disclaimer'])
+        disclaimer_tex = tex_utils.tex_command('input', [disclaimer_file])
 
     exercise_list_tex = ''
     for ex_info in exercise_list:
@@ -183,7 +189,7 @@ def render_latex_template(compilename, sheetinfo,
                                                     deadline=sheetinfo.get('deadline', 'today'),
                                                     sheetno=sheetinfo.get('sheetno', '0'),
                                                     sheetname=sheetinfo.get('sheetname', 'Blatt'),
-                                                    disclaimer=sheetinfo.get('disclaimer', 'empty_disclaimer'),
+                                                    disclaimer=disclaimer_tex,
                                                     deadlinetext=sheetinfo.get('deadlinetext', 'deadline: '),
                                                     path_to_res=os.path.abspath(sheetinfo.get('path_to_res', './')),
                                                     inputlist=exercise_list_tex)
