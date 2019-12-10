@@ -147,7 +147,7 @@
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % Anzeigenamen für Umbegungen
-\newcommand{\Blattname}{Blatt}
+\newcommand{\theBlattname}{Blatt}
 \newcommand{\Aufgabenname}{Aufgabe}
 \newcommand{\Hausaufgabenname}{Hausaufgabe}
 \newcommand{\Loesungsname}{L\"{o}sung}
@@ -156,9 +156,10 @@
 \newcommand{\Seitenname}{Seite}
 \newcommand{\Bildname}{Abbildung}
 \newcommand{\Listingname}{Listing}
+\newcommand{\Abgabedatumname}{Abgabe bis}
 
 \ifenglish
-\renewcommand{\Blattname}{Sheet}
+\renewcommand{\theBlattname}{Sheet}
 \renewcommand{\Aufgabenname}{Exercise}
 \renewcommand{\Hausaufgabenname}{Homework}
 \renewcommand{\Loesungsname}{Solution}
@@ -167,7 +168,36 @@
 \renewcommand{\Seitenname}{Page}
 \renewcommand{\Bildname}{Figure}
 \renewcommand{\Listingname}{Listing}
+\newcommand{\Abgabedatumname}{Due date}
 \fi
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% DATEN FÜR VERANSTALTUNG
+\newcommand{\theVeranstaltung}{}
+\newcommand{\theSemester}{}
+\newcommand{\theDozenten}{}
+\newcommand{\theErscheinungsdatum}{}
+\newcommand{\theAbgabedatum}{}
+
+\newcommand{\Veranstaltung}[1]{\renewcommand{\theVeranstaltung}{#1}}
+\newcommand{\Semester}[1]{\renewcommand{\theSemester}{#1}}
+\newcommand{\Blattname}[1]{\renewcommand{\theBlattname}{#1}}
+\newcommand{\Blattnummer}[1]{\setcounter{blatt}{\numexpr #1 -1}}
+\newcommand{\Dozenten}[1]{\renewcommand{\theDozenten}{#1}}
+\newcommand{\Erscheinungsdatum}[1]{\renewcommand{\theErscheinungsdatum}{#1}}
+\newcommand{\Abgabedatum}[1]{\renewcommand{\theAbgabedatum}{#1}}
+
+\newcommand{\setzeHeader}{
+	\ihead{\theVeranstaltung\\ \theBlattname{} \theblatt}
+	\ifoot{\theDozenten}
+	\ohead{\theSemester, \theErscheinungsdatum\\ \Seitenname \pagemark /\pageref{LastPage}}
+	\ofoot{
+		\begin{tabular}{l}
+			\Abgabedatumname{}:\\
+			\theAbgabedatum
+		\end{tabular}
+	}
+}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % EIGENE COUNTER
@@ -297,7 +327,8 @@
 % BEFEHL FÜR BLATT
 \newenvironment{Blatt}[1]{
 	\refstepcounter{blatt}
-	\section*{\centering \LARGE \Blattname{} \theblatt}
+	\setzeHeader
+	\section*{\centering \LARGE \theBlattname{} \theblatt}
 }{\newpage}
 
 \newcommand{\disclaimerStil}{\color{tuklrot}}
@@ -362,29 +393,6 @@
 			\end{center}
 		\end{minipage}}
 	\end{center}
-}
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% DATEN FÜR VERANSTALTUNG
-\newcommand{\Veranstaltung}[1]{
-	\ihead{#1\\ \Blattname \theblatt}
-}
-
-\newcommand{\Dozenten}[1]{
-	\ifoot{#1}
-}
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% DATEN FÜR BLATT SETZEN
-\newcommand{\Daten}[5]{
-	\ohead{#1\\ \Seitenname \pagemark /\pageref{LastPage}}
-	\ofoot{%
-		\begin{tabular}{ll}
-			\makecell{#3} & \makecell{#2}
-		\end{tabular}
-	}
-	\setcounter{blatt}{\numexpr #5 -1}
-	\renewcommand{\Blattname}{#4 }
 }
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %

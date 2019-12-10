@@ -35,7 +35,7 @@ def load_sheet_data():
         args.build_exercise = True
 
     if os.path.splitext(args.sheetinfo)[1] == '.ini':
-        config = configparser.SafeConfigParser(interpolation=configparser.BasicInterpolation())
+        config = configparser.SafeConfigParser(interpolation=configparser.ExtendedInterpolation())
         if not os.path.isfile(args.sheetinfo):
             logger.critical('The ini file %s does not exist', args.sheetinfo)
             raise OSError('File not found %s', args.sheetinfo)
@@ -111,7 +111,6 @@ def print_sheetinfo(sheetinfo, exercise_list):
     print('lecture:\t\t' + sheetinfo.get('lecture', 'name of lecture'))
     print('lecturer:\t\t' + sheetinfo.get('lecturer', 'name of lecturer'))
     print('releasedate:\t\t' + sheetinfo.get('releasedate', 'released today'))
-    print('deadlinetext:\t\t' + sheetinfo.get('deadlinetext', 'deadline: '))
     print('deadline:\t\t' + sheetinfo.get('deadline', 'today'))
     print('sheetno:\t\t' + sheetinfo.get('sheetno', '0'))
     print('sheetname:\t\t' + sheetinfo.get('sheetname',  'Blatt'))
@@ -184,13 +183,13 @@ def render_latex_template(compilename, sheetinfo,
     # parse template
     output_from_rendered_template = template.render(classoptions=class_options,
                                                     course=sheetinfo.get('lecture', 'name of lecture'),
+                                                    semester=sheetinfo.get('semester', 'semester'),
                                                     lecturer=sheetinfo.get('lecturer', 'name of lecturer'),
                                                     releasedate=sheetinfo.get('releasedate', 'released today'),
                                                     deadline=sheetinfo.get('deadline', 'today'),
                                                     sheetno=sheetinfo.get('sheetno', '0'),
                                                     sheetname=sheetinfo.get('sheetname', 'Blatt'),
                                                     disclaimer=disclaimer_tex,
-                                                    deadlinetext=sheetinfo.get('deadlinetext', 'deadline: '),
                                                     path_to_res=os.path.abspath(sheetinfo.get('path_to_res', './')),
                                                     inputlist=exercise_list_tex)
 

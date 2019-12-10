@@ -2,16 +2,18 @@
 \input{preamble_ex.tex}
 \usepackage{EWPStyle}
 
+\Semester{\VAR{semester}}
 \Veranstaltung{\VAR{course}}
-
+\Blattname{\VAR{sheetname}}
+\Blattnummer{\VAR{sheetno}}
 \Dozenten{\VAR{lecturer}} 
-\newcommand{\pathToResource}{\VAR{path_to_res}}
+\Erscheinungsdatum{\VAR{releasedate}}
+\Abgabedatum{\VAR{deadline}}
 
+\newcommand{\pathToResource}{\VAR{path_to_res}}
 \input{\pathToResource /usermacros.tex}
 
 \begin{document}
-
-\Daten{\VAR{releasedate}}{\VAR{deadline}}{\VAR{deadlinetext}}{\VAR{sheetname}}{\VAR{sheetno}}
 
 \begin{Blatt}
 	
