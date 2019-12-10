@@ -154,6 +154,8 @@
 \newcommand{\Punktename}{Punktevergabe}
 \newcommand{\Hinweisname}{Hinweis}
 \newcommand{\Seitenname}{Seite}
+\newcommand{\Bildname}{Abbildung}
+\newcommand{\Listingname}{Listing}
 
 \ifenglish
 \renewcommand{\Blattname}{Sheet}
@@ -163,6 +165,8 @@
 \renewcommand{\Punktename}{Grading}
 \renewcommand{\Hinweisname}{Hint}
 \renewcommand{\Seitenname}{Page}
+\renewcommand{\Bildname}{Figure}
+\renewcommand{\Listingname}{Listing}
 \fi
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
@@ -230,19 +234,19 @@
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % BEFEHLE FÜR BILDER
 % Figurecounter soll Blattzahl enthalten
-\newcounter{myfigures}[blatt]
-\renewcommand{\themyfigures}{\theblatt.\arabic{myfigures}}
+\newcounter{bilder}[blatt]
+\renewcommand{\thebilder}{\theblatt.\arabic{bilder}}
 
 % Ersetzt caption
 \newcommand{\bild}[1]{
-	\refstepcounter{myfigures}
+	\refstepcounter{bilder}
 	\caption*{
-		\textit{\textcolor{tuklblau!80}{Abbildung \themyfigures :} #1}
+		\textit{\textcolor{tuklblau!80}{\Bildname{} \thebilder :} #1}
 	}
 }
 % Referenz auf Bild
-\newcommand{\figureref}[1]{
-	\textcolor{tuklblau!80}{Abbildung \ref{#1}}
+\newcommand{\bildref}[1]{
+	\textcolor{tuklblau!80}{\Bildname{} \ref{#1}}
 }
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
@@ -276,12 +280,12 @@
 }
 
 % Befehl um Listing-Titel zu schreiben [title=\lstcap{...}]
-\newcommand{\lstcap}[1]{\refstepcounter{mylistings}\color{tuklblau!80}\itshape Listing \themylistings: #1
+\newcommand{\lstcap}[1]{\refstepcounter{mylistings}\color{tuklblau!80}\itshape \Listingname{} \themylistings: #1
 }
 
 % Befehl, um auf Listings zu referenzieren
 \newcommand{\lstref}[1]{
-	\textcolor{tuklblau!80}{Listing \ref{#1}}
+	\textcolor{tuklblau!80}{\Listingname{} \ref{#1}}
 }
 
 % Quelltext im Fließtext hervorheben mit:
@@ -354,7 +358,7 @@
 		\begin{minipage}{0.85\textwidth}
 			\begin{center}
 			\textcolor{tuklblau}{
-				\textbf{\Large \Hinweisname \theremarks}}\\ \textcolor{black}{#1}
+				\textbf{\Large \Hinweisname{} \theremarks}}\\ \textcolor{black}{#1}
 			\end{center}
 		\end{minipage}}
 	\end{center}
