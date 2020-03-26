@@ -80,22 +80,23 @@ def make_exercise_lists(sheetinfo, exercises):
             ex_type = 'inclass'
             
         exercise_name = exercise_info[1]            
-        path_to_ex = os.path.abspath(os.path.join(sheetinfo['path_to_res'], exercise_name, 'exercise.tex'))
-        path_to_sol = os.path.abspath(os.path.join(sheetinfo['path_to_res'], exercise_name, 'solution.tex'))
-        path_to_ann = os.path.abspath(sheetinfo['ini_name'] + '_' + key + '.tex')
+        assignment_path = os.path.abspath(os.path.join(sheetinfo['path_to_pool'], exercise_name))
+        exercise_file = os.path.join(assignment_path, 'exercise.tex')
+        solution_file = os.path.join(assignment_path, 'solution.tex')
+        annotation_file = os.path.abspath(sheetinfo['ini_name'] + '_' + key + '.tex')
         
-        if not os.path.isfile(path_to_ex): 
-            logger.debug('%s: File not found: %.s', key, path_to_ex)
+        if not os.path.isfile(exercise_file):
+            logger.debug('%s: File not found: %.s', key, exercise_file)
             logger.error('Skipping nonexistent exercise: %s.', exercise_name)
             continue
-        if not os.path.isfile(path_to_sol): 
-            logger.debug('%s: File not found: %s.', key, path_to_sol)
+        if not os.path.isfile(solution_file):
+            logger.debug('%s: File not found: %s.', key, solution_file)
             logger.warning('The exercise %s does not have a solution.', exercise_name)
-            path_to_sol = None
-        if not os.path.isfile(path_to_ann): 
-            logger.debug('%s: File not found: %s.', key, path_to_ann)
+            solution_file = None
+        if not os.path.isfile(annotation_file):
+            logger.debug('%s: File not found: %s.', key, annotation_file)
             logger.debug('%s: No annotation is attached to exercise %s.', key, exercise_name)
-            path_to_ann = None
+            annotation_file = None
             
         if len(exercise_info) >= 3: 
             exercise_title = exercise_info[2]
@@ -111,9 +112,10 @@ def make_exercise_lists(sheetinfo, exercises):
             logger.warning('%s: Extra arguments will be ignored.', key)
         exercise_info_dict = {'type': ex_type, 
                               'title': exercise_title,
-                              'exercise': path_to_ex, 
-                              'solution': path_to_sol,
-                              'annotation': path_to_ann, 
+                              'assignment':assignment_path,
+                              'exercise':exercise_file,
+                              'solution':solution_file,
+                              'annotation': annotation_file,
                               'points': exercise_points}
         exercise_list.append(exercise_info_dict)
     return exercise_list
@@ -129,7 +131,7 @@ def print_sheetinfo(sheetinfo, exercise_list):
     print('sheetname:\t\t' + sheetinfo.get('sheetname',  'Blatt'))
     print('disclaimer:\t\t' + sheetinfo.get('disclaimer', 'empty_disclaimer'))
     print('compilename:\t\t' + sheetinfo['compilename'])
-    print('resource:\t\t' + sheetinfo['path_to_res'])
+    print('resource:\t\t' + sheetinfo['path_to_pool'])
     print('exercises:\t\t')
     for ex_info in exercise_list:
         print('\t\t\t' + ex_info['type'] + ' : ' + ex_info['title'])
@@ -143,29 +145,23 @@ class Sheet:
         self.cls_wrapper = cls_wrapper
         
     def fill_latex_exercise_macro(self, ex_info):
-        if ex_info['type'] == 'homework': 
-            return tex_utils.tex_environment(self.cls_wrapper['enviroment']['homework'], 
-                                             tex_utils.tex_command('input', [ex_info['exercise']]), 
-                                             [ex_info['title'], ex_info['points']])
-        elif ex_info['type'] == 'inclass': 
-            return tex_utils.tex_environment(self.cls_wrapper['enviroment']['inclass'], 
-                                             tex_utils.tex_command('input', [ex_info['exercise']]), 
-                                             [ex_info['title']])
+        if ex_info['type'] == 'homework':
+            return tex_utils.tex_command('inputHausaufgabe', [ex_info['assignment'], ex_info['title'], ex_info['points']])
+        elif ex_info['type'] == 'inclass':
+            return tex_utils.tex_command('inputAufgabe', [ex_info['assignment'], ex_info['title']])
         else:
             raise ValueError('Unsupported exercise type %s', ex_info['type'])
 
 
     def fill_latex_solution_macro(self, ex_info):
-        if ex_info['solution'] is not None: 
-            return tex_utils.tex_environment(self.cls_wrapper['enviroment']['solution'],
-                                             tex_utils.tex_command('input', [ex_info['solution']]))
+        if ex_info['solution'] is not None:
+            return tex_utils.tex_command('inputLoesung', [ex_info['assignment']])
         return ''
 
 
     def fill_latex_annotation_macro(self, ex_info): 
-        if ex_info['annotation'] is not None: 
-            return tex_utils.tex_environment(self.cls_wrapper['enviroment']['annotation'], 
-                                             tex_utils.tex_command('input', [ex_info['annotation']]))
+        if ex_info['annotation'] is not None:
+            return tex_utils.tex_command('inputPunkte', [ex_info['annotation']])
         return ''
 
 
@@ -207,7 +203,7 @@ class Sheet:
                                                         sheetno=self.sheetinfo.get('sheetno', '0'),
                                                         sheetname=self.sheetinfo.get('sheetname', 'Blatt'),
                                                         disclaimer=disclaimer_tex,
-                                                        path_to_res=os.path.abspath(self.sheetinfo.get('path_to_res', './')),
+                                                        path_to_pool=os.path.abspath(self.sheetinfo.get('path_to_pool', './')),
                                                         inputlist=exercise_list_tex)
     
         # remove old files from build folder
@@ -304,6 +300,7 @@ if __name__ == '__main__':
             sheet.compilename = sheetinfo['compilename'] + '_annotation'
             sheet.render_latex_template( render_solution=True,
                                          render_annotations=True)
+            sheet.build_latex_document()
             
         logger.info('Creation of %s successfull', sheetinfo['compilename'])
     except Exception as ex:
