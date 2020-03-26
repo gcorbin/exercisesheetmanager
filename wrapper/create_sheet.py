@@ -164,7 +164,7 @@ class ExerciseSheet:
                 task_list_tex += self.fill_latex_solution_macro(task_info)+'\n'
             if render_annotations: 
                 task_list_tex += self.fill_latex_annotation_macro(task_info)+'\n'
-                
+
         class_options_list = []
         # TODO english class options
         if render_solution: 

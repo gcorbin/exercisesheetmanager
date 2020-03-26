@@ -274,31 +274,31 @@
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % interface to the exercise sheet manager scripts
 
-\newcommand{\inputAufgabe}[2]{%
-    \begin{inclass}{#2}
-        \renewcommand{\pathToResource}{#1}
-        \input{#1/exercise.tex}
-    \end{inclass}
+\newcommand{\inputInclass}[2]{%
+	\begin{inclass}{#2}
+		\renewcommand{\pathToResource}{#1}
+		\input{#1/exercise.tex}
+	\end{inclass}
 }
 
-\newcommand{\inputHausaufgabe}[3]{%
-    \begin{homework}{#2}{#3}
-        \renewcommand{\pathToResource}{#1}
-        \input{#1/exercise.tex}
-    \end{homework}
+\newcommand{\inputHomework}[3]{%
+	\begin{homework}{#2}{#3}
+		\renewcommand{\pathToResource}{#1}
+		\input{#1/exercise.tex}
+	\end{homework}
 }
 
-\newcommand{\inputLoesung}[1]{%
-    \begin{solution}
-        \renewcommand{\pathToResource}{#1}
-        \input{#1/solution.tex}
-    \end{solution}
+\newcommand{\inputSolution}[1]{%
+	\begin{solution}
+		\renewcommand{\pathToResource}{#1}
+		\input{#1/solution.tex}
+	\end{solution}
 }
 
-\newcommand{\inputPunkte}[1]{%
-    \begin{annotation}
-        \input{#1}
-    \end{annotation}
+\newcommand{\inputAnnotation}[1]{%
+	\begin{annotation}
+		\input{#1}
+	\end{annotation}
 }
 
 
