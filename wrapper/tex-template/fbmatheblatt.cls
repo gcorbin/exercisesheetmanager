@@ -389,28 +389,28 @@
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % Gekapselte befehle für Aufgaben
 
-\newcommand{\inputAufgabe}[2]{%
+\newcommand{\inputInclass}[2]{%
     \begin{Aufgabe}{#2}
         \renewcommand{\pathToResource}{#1}
         \input{#1/exercise.tex}
     \end{Aufgabe}
 }
 
-\newcommand{\inputHausaufgabe}[3]{%
+\newcommand{\inputHomework}[3]{%
     \begin{Hausaufgabe}{#2}{#3}
         \renewcommand{\pathToResource}{#1}
         \input{#1/exercise.tex}
     \end{Hausaufgabe}
 }
 
-\newcommand{\inputLoesung}[1]{%
+\newcommand{\inputSolution}[1]{%
     \begin{Loesung}
         \renewcommand{\pathToResource}{#1}
         \input{#1/solution.tex}
     \end{Loesung}
 }
 
-\newcommand{\inputPunkte}[1]{%
+\newcommand{\inputAnnotation}[1]{%
     \begin{Punkte}
         \input{#1}
     \end{Punkte}
