@@ -20,40 +20,11 @@
 %	Fachbereichs gestattet. Die Gestaltung ist an das Corporate Design der
 %	Uni Kaiserslautern angelehnt.
 %
+%
+% BENUTZUNG
+% Diese Klasse erbt von exercisesheet.cls
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% BENUTZUNG:
-%
-% 	Man erstelle ein .tex-File und führe die folgenden Schritte durch:
-%
-%	1. \documentclass{fbmatheblatt}
-%
-%	2. Veranstaltungsdaten setzen:
-%		\Veranstaltung{<Veranstaltungsname>}
-%       \Semester{<Semester>}
-%		\Dozenten{<Name1>\\<Name2>}
-%        ...
-%
-%	3. \begin{document}
-%
-%	4. Neues Blatt anlegen:
-%		4.2 Blatt anlegen mit Umgebung:
-%			\begin{Blatt}%
-%				4.2.1 Aufgaben einbinden mit Umgebung:
-%					\begin{Aufgabe}{<Titel>}{<Punkte>}
-%
-%						... Text ...
-%					\end{Aufgabe}
-%
-%				Wiederhole 4.2.1 bis genügend Aufgaben vorhanden!
-%
-%			\end{Blatt}
-%
-%	Wiederhole 4, bis genügend Blätter vorhanden!
-%
-%	5. \end{document}
-%
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% DEFINIERTE BEFEHLE:
+% WEITERE BEFEHLE:
 %
 %	- \Hinweis{Text}:
 %		Eine mit Blattnummer nummerierte, blaue Hinweisbox
@@ -80,16 +51,6 @@
 %		Farbiger Hyperlink mit Text beschreibung auf Seite url
 %
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% UMGEBUNGEN:
-% 
-%	- Blatt
-% 	- Disclaimer (Ein roter Text, der auf Formalitäten zur Abgabe hinweist)
-%   - Aufgabe (Für Präsenzübungen o.ä., hat keine Punkte)
-% 	- Hausaufgabe (für Hausaufgaben o.ä., hat ein extra Argument, um in Klammern die Punkte anzuzeigen)
-% 	- Loesung (wird mit der Klassenoption 'Loesungen' aktiviert, ansonsten auskommentiert)
-% 	- Punkte (Um Bepunktungshinweise für Tutoren zu geben, ist nur aktiv, wenn die Optionen 'Loesungen' und 'Punkte' gegeben sind)
-% 
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % EINBINDEN VON QUELLTEXT
 %
 % 	Weil das vorliegende Stylefile für Einführung in wiss. Programmieren
@@ -111,116 +72,54 @@
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 
-\LoadClass{scrartcl}
+\LoadClassWithOptions{exercisesheet}
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{fbmatheblatt}[2019/12/10 Uebungsblatt FB Mathematik]
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% PAKETE
-\RequirePackage[T1]{fontenc}
-\RequirePackage[utf8]{inputenc}
-\RequirePackage[ngerman]{babel}
-\RequirePackage{amsfonts,amsmath,amssymb,amsthm}
-\RequirePackage{graphicx}
-\RequirePackage{color}
-\RequirePackage{PTSans}
-\RequirePackage{textcomp}
-\RequirePackage{hyperref}
-\RequirePackage{enumerate}
-\RequirePackage{algorithm, algpseudocode}
-\RequirePackage{lastpage}
-\RequirePackage{tikz}
-\RequirePackage{scrlayer-scrpage}
-\RequirePackage{listings}
-\RequirePackage{xifthen}
-\RequirePackage{verbatim} % für die macros \comment und \endcomment
-
-\newif\ifenglish
-\englishfalse %Default: german
-
-\DeclareOption{English}{\englishtrue}
-\DeclareOption{German}{\englishfalse}
-
-
-\newif\ifloesung
-\loesungfalse
-\DeclareOption{Loesungen}{\loesungtrue}
-
-\newif\ifpunkte
-\punktefalse
-\DeclareOption{Punkte}{\punktetrue}
-
+\ProvidesClass{fbmatheblatt}[2020/03/26 Uebungsblatt FB Mathematik]
 
 \ProcessOptions\relax
 
+
+\usepackage[]{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage[]{amsmath}
+\usepackage[]{amsfonts}
+\usepackage[]{amssymb}
+\usepackage[]{amsthm}
+\usepackage{bm}
+\usepackage[]{eurosym}
+\usepackage[]{graphicx}
+\usepackage[]{subfig}
+\usepackage[]{caption}
+\usepackage[]{alltt}
+\usepackage[]{colortbl}
+\usepackage[]{stmaryrd}
+\usepackage[]{enumerate}
+\usepackage[]{tikz}
+\usepackage[]{pgfplots}
+\usepackage{nicefrac}
+\usepackage{empheq}
+\usepackage{makecell}
+\usepackage{listings} % code embedding
+\usepackage{enumerate} % change style of enumerate
+
+% bibliography stuff
+\usepackage{natbib}
+\usepackage{bibentry}
+\bibliographystyle{plain}
+\nobibliography*
+
+
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% Anzeigenamen für Umbegungen
-\newcommand{\theBlattname}{Blatt}
-\newcommand{\Aufgabenname}{Aufgabe}
-\newcommand{\Hausaufgabenname}{Hausaufgabe}
-\newcommand{\Loesungsname}{L\"{o}sung}
-\newcommand{\Punktename}{Punktevergabe}
-\newcommand{\Hinweisname}{Hinweis}
-\newcommand{\Seitenname}{Seite}
-\newcommand{\Bildname}{Abbildung}
-\newcommand{\Listingname}{Listing}
-\newcommand{\Abgabedatumname}{Abgabe bis}
+% DISPLAY names
+\newcommand{\esm@disphint}{Hinweis}
+\newcommand{\esm@dispfigure}{Abbildung}
+\newcommand{\esm@displisting}{Listing}
 
 \ifenglish
-\renewcommand{\theBlattname}{Sheet}
-\renewcommand{\Aufgabenname}{Exercise}
-\renewcommand{\Hausaufgabenname}{Homework}
-\renewcommand{\Loesungsname}{Solution}
-\renewcommand{\Punktename}{Grading}
-\renewcommand{\Hinweisname}{Hint}
-\renewcommand{\Seitenname}{Page}
-\renewcommand{\Bildname}{Figure}
-\renewcommand{\Listingname}{Listing}
-\newcommand{\Abgabedatumname}{Due date}
+\renewcommand{\esm@disphint}{Hint}
+\renewcommand{\esm@dispfigure}{Figure}
+\renewcommand{\esm@displisting}{Listing}
 \fi
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% DATEN FÜR VERANSTALTUNG
-\newcommand{\theVeranstaltung}{}
-\newcommand{\theSemester}{}
-\newcommand{\theDozenten}{}
-\newcommand{\theErscheinungsdatum}{}
-\newcommand{\theAbgabedatum}{}
-
-\newcommand{\Veranstaltung}[1]{\renewcommand{\theVeranstaltung}{#1}}
-\newcommand{\Semester}[1]{\renewcommand{\theSemester}{#1}}
-\newcommand{\Blattname}[1]{\renewcommand{\theBlattname}{#1}}
-\newcommand{\Blattnummer}[1]{\setcounter{blatt}{\numexpr #1 -1}}
-\newcommand{\Dozenten}[1]{\renewcommand{\theDozenten}{#1}}
-\newcommand{\Erscheinungsdatum}[1]{\renewcommand{\theErscheinungsdatum}{#1}}
-\newcommand{\Abgabedatum}[1]{\renewcommand{\theAbgabedatum}{#1}}
-
-\newcommand{\setzeHeader}{
-	\ihead{\theVeranstaltung\\ \theBlattname{} \theblatt}
-	\ifoot{\theDozenten}
-	\ohead{\theSemester, \theErscheinungsdatum\\ \Seitenname \pagemark /\pageref{LastPage}}
-	\ofoot{
-		\begin{tabular}{l}
-			\Abgabedatumname{}:\\
-			\theAbgabedatum
-		\end{tabular}
-	}
-}
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% EIGENE COUNTER
-
-% Blattcounter
-\newcounter{blatt}
-% Gleichungscounter
-\numberwithin{equation}{blatt}
-% Aufgabencounter
-\newcounter{aufgaben}[blatt]
-\renewcommand{\theaufgaben}{\theblatt.\arabic{aufgaben}}
-\newcounter{hausaufgaben}[blatt]
-\renewcommand{\thehausaufgaben}{\theblatt.\arabic{hausaufgaben}}
-\newcounter{loesungen}[blatt]
-\renewcommand{\theloesungen}{\theblatt.\arabic{loesungen}}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % FARBDEFINITIONEN
@@ -268,23 +167,35 @@
 % Schriftart PT Sans
 \renewcommand{\familydefault}{\sfdefault}
 
+% enumerate convention a), b)
+\renewcommand{\theenumi}{\alph{enumi}}
+\renewcommand{\labelenumi}{\theenumi)}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% DISCLAIMER
+\renewenvironment{disclaimer}{%
+	\begin{center}%
+		\begin{minipage}{0.9\textwidth}%
+			\color{tuklrot}
+		}{%
+	\end{minipage}
+\end{center}
+}
+
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % BEFEHLE FÜR BILDER
-% Figurecounter soll Blattzahl enthalten
-\newcounter{bilder}[blatt]
-\renewcommand{\thebilder}{\theblatt.\arabic{bilder}}
-
+\newcounter{esmfigurecounter}
 % Ersetzt caption
 \newcommand{\bild}[1]{
-	\refstepcounter{bilder}
+	\refstepcounter{esmfigurecounter}
 	\caption*{
-		\textit{\textcolor{tuklblau!80}{\Bildname{} \thebilder :} #1}
+		\textit{\textcolor{tuklblau!80}{\esm@dispfigure{} \theesmfigurecounter :} #1}
 	}
 }
 % Referenz auf Bild
 \newcommand{\bildref}[1]{
-	\textcolor{tuklblau!80}{\Bildname{} \ref{#1}}
+	\textcolor{tuklblau!80}{\esm@dispfigure{} \ref{#1}}
 }
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
@@ -312,18 +223,18 @@
 }
 
 % Zähler für Listings
-\newcounter{mylistings}[blatt]
-\renewcommand{\themylistings}{
-	\theblatt.\arabic{mylistings}
+\newcounter{esmlistingcounter}[esmsheetnumber]
+\renewcommand{\theesmlistingcounter}{
+	\theesmsheetnumber.\arabic{mylistings}
 }
 
 % Befehl um Listing-Titel zu schreiben [title=\lstcap{...}]
-\newcommand{\lstcap}[1]{\refstepcounter{mylistings}\color{tuklblau!80}\itshape \Listingname{} \themylistings: #1
+\newcommand{\lstcap}[1]{\refstepcounter{mylistings}\color{tuklblau!80}\itshape \esm@displisting{} \theesmlistingcounter: #1
 }
 
 % Befehl, um auf Listings zu referenzieren
 \newcommand{\lstref}[1]{
-	\textcolor{tuklblau!80}{\Listingname{} \ref{#1}}
+	\textcolor{tuklblau!80}{\esm@displisting{} \ref{#1}}
 }
 
 % Quelltext im Fließtext hervorheben mit:
@@ -331,104 +242,19 @@
 % Im kursiv gedruckten Kontext:
 \newcommand{\codif}[1]{\normalfont\texttt{#1}}
 
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% BEFEHL FÜR BLATT
-\newenvironment{Blatt}[1]{
-	\refstepcounter{blatt}
-	\setzeHeader
-	\section*{\centering \LARGE \theBlattname{} \theblatt}
-}{\newpage}
-
-\newcommand{\disclaimerStil}{\color{tuklrot}}
-\newenvironment{Disclaimer}{%
-	\begin{center}%
-		\begin{minipage}{0.9\textwidth}%
-			\disclaimerStil
-		}{%
-		\end{minipage}
-	\end{center}
-}
-
-\newcommand{\pathToResource}{.}
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% BEFEHL FÜR AUFGABE
-\newenvironment{Aufgabe}[1]{
-	\refstepcounter{aufgaben}
-	\par\hrulefill
-	\subsection*{\Aufgabenname{} \theaufgaben: \textit{#1 }}
-}{}
-
-\newenvironment{Hausaufgabe}[2]{
-	\refstepcounter{hausaufgaben}
-	\par\hrulefill
-	\subsection*{\Hausaufgabenname{} \thehausaufgaben: \textit{#1%
-		\ifx#2%
-		\else%
-		(#2)%
-		\fi%
-	}}
-}{}
-
-
-\newenvironment{Loesung}{\comment}{\endcomment}
-\newenvironment{Punkte}{\comment}{\endcomment}
-
-\ifloesung
-	\renewenvironment{Loesung}{%
-		\refstepcounter{loesungen}
-		\subsection*{\Loesungsname{}}
-	}{}%
-	\ifpunkte
-		\renewenvironment{Punkte}{
-			\subsection*{\Punktename{}}
-		}{}%
-	\fi
-\fi
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% Gekapselte befehle für Aufgaben
-
-\newcommand{\inputInclass}[2]{%
-    \begin{Aufgabe}{#2}
-        \renewcommand{\pathToResource}{#1}
-        \input{#1/exercise.tex}
-    \end{Aufgabe}
-}
-
-\newcommand{\inputHomework}[3]{%
-    \begin{Hausaufgabe}{#2}{#3}
-        \renewcommand{\pathToResource}{#1}
-        \input{#1/exercise.tex}
-    \end{Hausaufgabe}
-}
-
-\newcommand{\inputSolution}[1]{%
-    \begin{Loesung}
-        \renewcommand{\pathToResource}{#1}
-        \input{#1/solution.tex}
-    \end{Loesung}
-}
-
-\newcommand{\inputAnnotation}[1]{%
-    \begin{Punkte}
-        \input{#1}
-    \end{Punkte}
-}
-
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % HINWEISBOX
-\newcounter{hinweise}[blatt]
-\renewcommand{\thehinweise}{\theblatt.\arabic{hinweise}}
+\newcounter{esmhintcounter}[esmsheetnumber]
+\renewcommand{\theesmhintcounter}{\theesmsheetnumber.\arabic{esmhintcounter}}
 \newcommand{\Hinweis}[1]{
-	\refstepcounter{hinweise}
+	\refstepcounter{esmhintcounter}
 	\begin{center}
 		\colorbox{tuklblau!10}{
 		\begin{minipage}{0.85\textwidth}
 			\begin{center}
 			\textcolor{tuklblau}{
-				\textbf{\Large \Hinweisname{} \thehinweise}}\\ \textcolor{black}{#1}
+				\textbf{\Large \esm@disphint{} \theesmhintcounter}}\\ \textcolor{black}{#1}
 			\end{center}
 		\end{minipage}}
 	\end{center}

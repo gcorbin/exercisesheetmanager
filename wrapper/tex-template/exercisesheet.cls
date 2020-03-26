@@ -1,3 +1,52 @@
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% USAGE:
+%   1. Options: 
+% 	solutions: toggle solution environment, if not given, the content of the environment is commented out
+% 	annotations: toggle annotation environment, if not given, the content of the environment is commented out
+%   german: set language to german
+%   english: set language to english, default
+%   
+% EXAMPLE
+%\documentclass[english, solutions, annotations]{exercisesheet}
+%
+% % set metadata
+%\semester{SS2020}
+%\lecture{Intro to ODEs}
+%\sheetname{Assignments}
+%\sheetno{1}
+%\lecturer{Prof. M. Mustermann \\ Dr. M. Musterfrau} 
+%\releasedate{01.01.2020}
+%\deadline{08.01.2020, 12:00}
+%
+%\begin{document}%	
+%	\begin{sheet}
+%		\begin{disclaimer}
+%			Solutions submitted after the deadline will not be graded!
+%		\end{disclaimer}
+%		
+%		\begin{homework}{A simple task}{5 Points}
+%       	Solve $\dot{x} = x$ for initial condition $x(0) = 1$. 
+%       \end{homework}
+%		\begin{solution}
+%        	x = \exp(t)
+%       \end{solution}
+%       \begin{annotation}
+%			All points or none. 
+%		\end{annotation}
+%	\end{sheet}
+%\end{document}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% Environments:
+% 
+%	- sheet
+% 	- disclaimer (for formalities concerning the exercise)
+%   - inclass (for class exercises, no points)
+% 	- homework (for homework tasks, has an optional argument to display number of points in brackets)
+% 	- solution (for solutions to both inclass and homework tasks, has to be activated with the class option 'solutions')
+% 	- annotation (extra annotations for tutors, has to be activated with the class option 'annotations' )
+% 
+
 \LoadClass{scrartcl}
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{exercisesheet}
@@ -40,16 +89,13 @@
 \ProcessOptions\relax
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% Anzeigenamen für Umbegungen
+% DISPLAY Names
 \newcommand{\esm@dispsheet}{\esmsheetnumber}
 \newcommand{\esm@dispinclass}{Aufgabe}
 \newcommand{\esm@disphomework}{Hausaufgabe}
 \newcommand{\esm@dispsolution}{L\"{o}sung}
 \newcommand{\esm@dispannotation}{Punktevergabe}
-\newcommand{\esm@disphint}{Hinweis}
 \newcommand{\esm@disppage}{Seite}
-\newcommand{\esm@dispfigure}{Abbildung}
-\newcommand{\esm@displisting}{Listing}
 \newcommand{\esm@dispduedate}{Abgabe bis}
 
 \ifenglish
@@ -58,15 +104,12 @@
 \renewcommand{\esm@disphomework}{Homework}
 \renewcommand{\esm@dispsolution}{Solution}
 \renewcommand{\esm@dispannotation}{Grading}
-\renewcommand{\esm@disphint}{Hint}
 \renewcommand{\esm@disppage}{Page}
-\renewcommand{\esm@dispfigure}{Figure}
-\renewcommand{\esm@displisting}{Listing}
-\newcommand{\esm@dispduedate}{Due date}
+\renewcommand{\esm@dispduedate}{Due date}
 \fi
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% DATEN FÜR VERANSTALTUNG
+% METADATA
 \newcommand{\esm@thelecture}{}
 \newcommand{\esm@thesemester}{}
 \newcommand{\esm@thelecturer}{}
@@ -94,13 +137,9 @@
 }
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% EIGENE COUNTER
-
-% \esmsheetnumbercounter
+% COUNTER
 \newcounter{esmsheetnumber}
-% Gleichungscounter
 \numberwithin{equation}{esmsheetnumber}
-% Aufgabencounter
 \newcounter{inclasscounter}[esmsheetnumber]
 \renewcommand{\theinclasscounter}{\theesmsheetnumber.\arabic{inclasscounter}}
 \newcounter{homeworkcounter}[esmsheetnumber]
@@ -108,114 +147,6 @@
 \newcounter{solutioncounter}[esmsheetnumber]
 \renewcommand{\thesolutioncounter}{\theesmsheetnumber.\arabic{solutioncounter}}
 
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% FARBDEFINITIONEN
-\definecolor{tuklblau}{RGB}{0,95,140}
-\definecolor{warmgrau}{RGB}{122,114,106}
-\definecolor{tuklrot}{RGB}{185,40,25}
-\definecolor{kaltgrau}{RGB}{102,128,128}
-\definecolor{tuklmathematik}{RGB}{254,192,0}
-
-\definecolor{purpel}{rgb}{0.5,0,0.5}
-\definecolor{grun}{rgb}{0.0,0.4,0.0}
-\definecolor{lgrau}{rgb}{0.9,0.9,0.9}
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% MATHEMATIK- UND UNI-LOGO
-\pagestyle{scrheadings}
-
-\chead{%\includegraphics[width=5.1cm]{Logos/Mathematik.png}
-	\begin{tikzpicture}
-		\draw[draw=none,fill=tuklblau] (0,0) -- ++(0,-1.36) arc (-180:-90:0.1) -- ++(4.9,0) arc (-90:0:0.1) -- ++(0,1.36) ;
-		\node[anchor=north] (MATHWRT) at (2.6,-0.43) {
-			\textcolor{white}{\textup{\textbf{\LARGE MATHEMATIK}}}
-		};
-	\end{tikzpicture}%\includegraphics[width=5.1cm]{Logos/TUKL_LOGO_FELD_UNTEN_4C.pdf}
-}
-\cfoot{\includegraphics[width=5.1cm]{TUKL_LOGO_FELD_UNTEN_4C.pdf}}
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% GEOMETRIE setzen
-\RequirePackage[hmargin=2cm,
-			head=1.6cm,
-			%headsep=0.1cm,
-			tmargin=2.3cm,
-			bmargin=2.7cm]{geometry}
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% ALLGEMEINE EINSTELLUNGEN
-
-% Überschriften färben
-\addtokomafont{sectioning}{\color{tuklblau!80}}
-
-% Einzug am Beginn neuer Absätze auf 0 setzen
-\setlength{\parindent}{0em}
-
-% Schriftart PT Sans
-\renewcommand{\familydefault}{\sfdefault}
-
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% BEFEHLE FÜR BILDER
-% Figurecounter soll esmsheetnumberzahl enthalten
-\newcounter{bilder}[esmsheetnumber]
-\renewcommand{\thebilder}{\theesmsheetnumber.\arabic{bilder}}
-
-% Ersetzt caption
-\newcommand{\bild}[1]{
-	\refstepcounter{bilder}
-	\caption*{
-		\textit{\textcolor{tuklblau!80}{\esm@dispfigure{} \thebilder :} #1}
-	}
-}
-% Referenz auf Bild
-\newcommand{\bildref}[1]{
-	\textcolor{tuklblau!80}{\esm@dispfigure{} \ref{#1}}
-}
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% CODE HIGHLIGHTING MIT LSTLISTING
-
-% Courier als Standardfont
-\def\codefont{\fontfamily{pcr}\selectfont}
-
-% Macht Captions nach links?
-\RequirePackage{caption}
-\captionsetup[lstlisting]{singlelinecheck=off}
-
-% Globale Eigenschaften für Codefenster
-\lstset{
-	basicstyle=\codefont,
-	showstringspaces=false,
-	tabsize=4,
-	mathescape=true,escapechar=§,
-	upquote=true,
-	columns=fixed,
-	keywordstyle=\color{blue}\codefont,
-	stringstyle=\color{purpel}\codefont,
-	commentstyle=\color{grun}\codefont,
-	morecomment=[l][\color{grun}]{\#}
-}
-
-% Zähler für Listings
-\newcounter{mylistings}[esmsheetnumber]
-\renewcommand{\themylistings}{
-	\theesmsheetnumber.\arabic{mylistings}
-}
-
-% Befehl um Listing-Titel zu schreiben [title=\lstcap{...}]
-\newcommand{\lstcap}[1]{\refstepcounter{mylistings}\color{tuklblau!80}\itshape \esm@displisting{} \themylistings: #1
-}
-
-% Befehl, um auf Listings zu referenzieren
-\newcommand{\lstref}[1]{
-	\textcolor{tuklblau!80}{\esm@displisting{} \ref{#1}}
-}
-
-% Quelltext im Fließtext hervorheben mit:
-\newcommand{\codi}[1]{\texttt{#1}}
-% Im kursiv gedruckten Kontext:
-\newcommand{\codif}[1]{\normalfont\texttt{#1}}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % SHEET
@@ -225,7 +156,6 @@
 	\section*{\centering \LARGE \esm@dispsheet{} \theesmsheetnumber}
 }{\newpage}
 
-%\newcommand{\disclaimerStil}{\color{tuklrot}}
 \newenvironment{disclaimer}{%
 	\begin{center}%
 		\begin{minipage}{0.9\textwidth}%
@@ -238,7 +168,7 @@
 \newcommand{\pathToResource}{.}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% TASKS
+% ENVIRONMENTS FOR TASKS, SOLUTION, ANNOTATION
 \newenvironment{inclass}[1]{
 	\refstepcounter{inclasscounter}
 	\par\hrulefill
@@ -256,23 +186,26 @@
 	}}
 }{}
 
-\newenvironment{solution}{\comment}{\endcomment}
-\newenvironment{annotation}{\comment}{\endcomment}
-
 \ifsolutions
-	\renewenvironment{solution}{%
+	\newenvironment{solution}{%
 		\refstepcounter{solutioncounter}
 		\subsection*{\esm@dispsolution{}}
 	}{}%
-	\ifannotations
-		\renewenvironment{annotation}{
-			\subsection*{\esm@dispannotation{}}
-		}{}%
-	\fi
+\else
+	\newenvironment{solution}{\comment}{\endcomment}
 \fi
 
+\ifannotations
+	\newenvironment{annotation}{
+		\subsection*{\esm@dispannotation{}}
+	}{}%
+\else
+	\newenvironment{annotation}{\comment}{\endcomment}
+\fi
+
+
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% interface to the exercise sheet manager scripts
+% INTERFACE to the exercise sheet manager scripts
 
 \newcommand{\inputInclass}[2]{%
 	\begin{inclass}{#2}
@@ -288,58 +221,23 @@
 	\end{homework}
 }
 
-\newcommand{\inputSolution}[1]{%
-	\begin{solution}
-		\renewcommand{\pathToResource}{#1}
-		\input{#1/solution.tex}
-	\end{solution}
-}
+\ifsolutions
+	\newcommand{\inputSolution}[1]{%
+		\begin{solution}
+			\renewcommand{\pathToResource}{#1}
+			\input{#1/solution.tex}
+		\end{solution}
+	}	
+\else
+	\newcommand{\inputSolution}[1]{}
+\fi
 
-\newcommand{\inputAnnotation}[1]{%
-	\begin{annotation}
-		\input{#1}
-	\end{annotation}
-}
-
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% HINWEISBOX
-\newcounter{hinweise}[esmsheetnumber]
-\renewcommand{\thehinweise}{\theesmsheetnumber.\arabic{hinweise}}
-\newcommand{\Hinweis}[1]{
-	\refstepcounter{hinweise}
-	\begin{center}
-		\colorbox{tuklblau!10}{
-		\begin{minipage}{0.85\textwidth}
-			\begin{center}
-			\textcolor{tuklblau}{
-				\textbf{\Large \esm@disphint{} \thehinweise}}\\ \textcolor{black}{#1}
-			\end{center}
-		\end{minipage}}
-	\end{center}
-}
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% SONSTIGE BEFEHLE
-
-% Links
-\newcommand{\weblink}[2]{
-	\href{#1}{\textcolor{tuklblau}{%
-			\ifx#2{}%
-				#2%
-			\else 
-				#1%
-			\fi}}
-}
-
-% Referenz auf einen Aufgabenteil
-\newcommand{\teilref}[1]{
-	\ref{#1}) %
-}
-
-% Texthervorhebung
-\newcommand{\hervor}[1]{
-	\textcolor{tuklblau!90}{
-		\textit{#1}
+\ifannotations
+	\newcommand{\inputAnnotation}[1]{%
+		\begin{annotation}
+			\input{#1}
+		\end{annotation}
 	}
-}
+\else
+	\newcommand{\inputAnnotation}[1]{}
+\fi
