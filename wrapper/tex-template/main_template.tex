@@ -1,29 +1,29 @@
-\documentclass[\VAR{classoptions}]{fbmatheblatt}
+\documentclass[\VAR{classoptions}]{exercisesheet}
 \input{preamble.tex}
 \usepackage{EWPStyle}
 
-\Semester{\VAR{semester}}
-\Veranstaltung{\VAR{course}}
-\Blattname{\VAR{sheetname}}
-\Blattnummer{\VAR{sheetno}}
-\Dozenten{\VAR{lecturer}} 
-\Erscheinungsdatum{\VAR{releasedate}}
-\Abgabedatum{\VAR{deadline}}
+\semester{\VAR{semester}}
+\lecture{\VAR{course}}
+\sheetname{\VAR{sheetname}}
+\sheetno{\VAR{sheetno}}
+\lecturer{\VAR{lecturer}} 
+\releasedate{\VAR{releasedate}}
+\deadline{\VAR{deadline}}
 
 \newcommand{\pathToPool}{\VAR{path_to_pool}}
 \input{\pathToPool /usermacros.tex}
 
 \begin{document}
 
-\begin{Blatt}
+\begin{sheet}
 	
-\begin{Disclaimer}
+\begin{disclaimer}
 	\VAR{disclaimer}
-\end{Disclaimer}
+\end{disclaimer}
 
 \VAR{inputlist}
 
-\end{Blatt}
+\end{sheet}
 
 \nobibliography{\pathToPool /literature}
 

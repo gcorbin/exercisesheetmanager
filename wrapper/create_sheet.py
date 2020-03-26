@@ -180,11 +180,11 @@ class Sheet:
     
         exercise_list_tex = ''
         for ex_info in self.exercise_list:
-            exercise_list_tex += self.fill_latex_exercise_macro(ex_info)
+            exercise_list_tex += self.fill_latex_exercise_macro(ex_info)+'\n'
             if render_solution: 
-                exercise_list_tex += self.fill_latex_solution_macro(ex_info)
+                exercise_list_tex += self.fill_latex_solution_macro(ex_info)+'\n'
             if render_annotations: 
-                exercise_list_tex += self.fill_latex_annotation_macro(ex_info)
+                exercise_list_tex += self.fill_latex_annotation_macro(ex_info)+'\n'
     
         class_options_list = []
         if render_solution: 
