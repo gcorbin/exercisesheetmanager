@@ -1,3 +1,4 @@
+#! /usr/bin/python
 # -*- coding: utf-8 -*-
 
 # -----------------------------------------------------------------------------
@@ -35,7 +36,7 @@ def load_sheet_data():
         args.build_exercise = True
 
     if os.path.splitext(args.sheetinfo)[1] == '.ini':
-        config = configparser.SafeConfigParser(interpolation=configparser.ExtendedInterpolation())
+        config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
         if not os.path.isfile(args.sheetinfo):
             logger.critical('The ini file %s does not exist', args.sheetinfo)
             raise OSError('File not found %s', args.sheetinfo)
@@ -238,22 +239,22 @@ def build_latex_document(compilename, sheetinfo):
             # go through the latex log file line by line 
             # when a line starts with '!', it is a latex error
             # display the line and the following lines for context
-            with open(build_file + '.log', 'r') as texlog: 
-                try: 
-                    while True: 
-                        line = texlog.next()
-                        if line.startswith('!'): 
+            with open(build_file + '.log', 'r', encoding="utf8", errors='ignore') as texlog: 
+   
+                line = texlog.readline()
+                while line: 
+                    if line.startswith('!'): 
+                        logger.info(line.strip())
+                        i = 0
+                        while i < 5: 
+                            line = texlog.readline()
                             logger.info(line.strip())
-                            i = 0
-                            while i < 5: 
-                                line = texlog.next()
-                                logger.info(line.strip())
-                                if line.startswith('!'):
-                                    i = 0
-                                else: 
-                                    i += 1
-                except StopIteration: 
-                    pass # happens when the end of file is reached
+                            if line.startswith('!'):
+                                i = 0
+                            else: 
+                                i += 1
+                    line = texlog.readline()
+            sys.exit(1)
         except OSError: 
             logger.warning('Could not open tex log file %s', os.path.join(build_file,'.log'))
         raise ex
