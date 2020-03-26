@@ -33,7 +33,7 @@ def load_sheet_data(args):
             raise OSError('File not found %s', args.sheetinfo)
         config.read(args.sheetinfo)
         sheetinfo = config['sheet_info']
-        sheetinfo['language'] = sheetinfo.get('language', 'German')
+        sheetinfo['language'] = sheetinfo.get('language', 'german')
         sheetinfo['disclaimer'] = sheetinfo.get('disclaimer', '')
         sheetinfo['build_folder'] = sheetinfo.get('build_folder', './build/')
         sheetinfo['ini_name'] = os.path.splitext(os.path.split(args.sheetinfo)[1])[0] 
@@ -194,7 +194,9 @@ class ExerciseSheet:
         # write to new file
         with open(os.path.join(self.sheetinfo['build_folder'], self.compilename + '.tex'), 'w') as fh:
             fh.write(output_from_rendered_template)
-            
+
+    # this removes all auxiliary files, also from other sheets
+    # TODO: only remove files for the current sheet
     def clear_dir(self):
         old_files = os.listdir(self.sheetinfo['build_folder'])
         for item in old_files:
