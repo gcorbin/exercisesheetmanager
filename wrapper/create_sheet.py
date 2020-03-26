@@ -166,11 +166,10 @@ class ExerciseSheet:
                 task_list_tex += self.fill_latex_annotation_macro(task_info)+'\n'
 
         class_options_list = []
-        # TODO english class options
         if render_solution: 
-            class_options_list.append('Loesungen')
+            class_options_list.append('solutions')
         if render_annotations: 
-            class_options_list.append('Punkte')
+            class_options_list.append('annotations')
         class_options_list.append(self.sheetinfo['language'])
         class_options = ','.join(class_options_list)
         # parse template
