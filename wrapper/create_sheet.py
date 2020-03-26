@@ -54,6 +54,18 @@ def load_sheet_data():
 
     return sheetinfo, exercises, args
 
+def load_texclass_wrapper( path ):
+    
+    logger.debug('Loading tex class info.')
+    file = path + '/texclass_wrapper.ini'
+    if os.path.isfile( file ): 
+         cls_wrapper = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+         cls_wrapper.read(file)
+    else:
+        logger.critical('The ini file %s does not exist', file)
+        raise OSError('File not found %s', file)
+        
+    return cls_wrapper
 
 def make_exercise_lists(sheetinfo, exercises):
     exercise_list = []
@@ -123,141 +135,145 @@ def print_sheetinfo(sheetinfo, exercise_list):
         print('\t\t\t' + ex_info['type'] + ' : ' + ex_info['title'])
     print('\n')
 
-
-def fill_latex_exercise_macro(ex_info):
-    if ex_info['type'] == 'homework': 
-        return tex_utils.tex_environment('Hausaufgabe', 
-                                         tex_utils.tex_command('input', [ex_info['exercise']]), 
-                                         [ex_info['title'], ex_info['points']])
-    elif ex_info['type'] == 'inclass': 
-        return tex_utils.tex_environment('Aufgabe', 
-                                         tex_utils.tex_command('input', [ex_info['exercise']]), 
-                                         [ex_info['title']])
-    else:
-        raise ValueError('Unsupported exercise type %s', ex_info['type'])
-
-
-def fill_latex_solution_macro(ex_info):
-    if ex_info['solution'] is not None: 
-        return tex_utils.tex_environment('Loesung',
-                                         tex_utils.tex_command('input', [ex_info['solution']]))
-    return ''
-
-
-def fill_latex_annotation_macro(ex_info): 
-    if ex_info['annotation'] is not None: 
-        return tex_utils.tex_environment('Punkte', 
-                                          tex_utils.tex_command('input', [ex_info['annotation']]))
-    return ''
-
-
-def render_latex_template(compilename, sheetinfo,
-                          exercise_list,
-                          render_solution, render_annotations):
-    # Jinja2 magic to parse latex template
-    latex_jinja_env = jinja2.Environment(variable_start_string='\VAR{',
-                                         variable_end_string='}',
-                                         autoescape=False,
-                                         loader=jinja2.FileSystemLoader(sheetinfo['tex_root']))
-    template = latex_jinja_env.get_template(sheetinfo['main_template'])
-    
-    disclaimer_tex = ''
-    if sheetinfo['disclaimer'] != '': 
-        disclaimer_file = os.path.abspath(sheetinfo['disclaimer'])
-        disclaimer_tex = tex_utils.tex_command('input', [disclaimer_file])
-
-    exercise_list_tex = ''
-    for ex_info in exercise_list:
-        exercise_list_tex += fill_latex_exercise_macro(ex_info)
-        if render_solution: 
-            exercise_list_tex += fill_latex_solution_macro(ex_info)
-        if render_annotations: 
-            exercise_list_tex += fill_latex_annotation_macro(ex_info)
-
-    class_options_list = []
-    if render_solution: 
-        class_options_list.append('Loesungen')
-    if render_annotations: 
-        class_options_list.append('Punkte')
-    class_options_list.append(sheetinfo['language'])
-    class_options = ','.join(class_options_list)
-    # parse template
-    output_from_rendered_template = template.render(classoptions=class_options,
-                                                    course=sheetinfo.get('lecture', 'name of lecture'),
-                                                    semester=sheetinfo.get('semester', 'semester'),
-                                                    lecturer=sheetinfo.get('lecturer', 'name of lecturer'),
-                                                    releasedate=sheetinfo.get('releasedate', 'released today'),
-                                                    deadline=sheetinfo.get('deadline', 'today'),
-                                                    sheetno=sheetinfo.get('sheetno', '0'),
-                                                    sheetname=sheetinfo.get('sheetname', 'Blatt'),
-                                                    disclaimer=disclaimer_tex,
-                                                    path_to_res=os.path.abspath(sheetinfo.get('path_to_res', './')),
-                                                    inputlist=exercise_list_tex)
-
-    # remove old files from build folder
-    old_files = os.listdir(sheetinfo['build_folder'])
-    for item in old_files:
-        if item.startswith(compilename + '.'):
-            os.remove(os.path.join(sheetinfo['build_folder'], item))
-
-    # write to new file
-    with open(os.path.join(sheetinfo['build_folder'], compilename + '.tex'), 'w') as fh:
-        fh.write(output_from_rendered_template)
-
-
-def build_latex_document(compilename, sheetinfo):
-    build_dir = os.path.abspath(sheetinfo['build_folder'])
-    build_file = os.path.join(build_dir, compilename)
-    latex_command = ['pdflatex', '-synctex=1', '-interaction=nonstopmode', '--shell-escape',
-                    '--output-directory='+build_dir, build_file]    
-    bibtex_command = ['bibtex', compilename]
-    
-    logger.info('Compiling Latex Document %s', compilename)
-    logger.debug('Latex command %s', latex_command)
-    logger.debug('bibtex_command %s', bibtex_command)
-    
-    try: 
-        FNULL = open(os.devnull, 'w')
-        with os_utils.ChangedDirectory(sheetinfo['tex_root']): 
-            logger.info('Latex: first run')
-            subprocess.check_call(latex_command, stdout=FNULL)
-        with os_utils.ChangedDirectory(build_dir):
-            logger.info('Bibtex')
-            status = subprocess.call(bibtex_command, stdout=FNULL)
-        if status != 0: 
-            logger.warning('Bibtex command exited with error. Status %s', status)
-        with os_utils.ChangedDirectory(sheetinfo['tex_root']): 
-            logger.info('Latex: second run')
-            subprocess.check_call(latex_command, stdout=FNULL)
-            logger.info('Latex: third run')
-            subprocess.check_call(latex_command, stdout=FNULL)
+class Sheet:
+    def __init__(self, sheetinfo,
+                 exercise_list, cls_wrapper):
+        self.sheetinfo = sheetinfo
+        self.exercise_list = exercise_list
+        self.cls_wrapper = cls_wrapper
         
-    except subprocess.CalledProcessError as ex:
-        logger.error('Error during compilation of latex document. Exit status: %s', ex.returncode)
-        logger.info('Errors from latex log file follow:')
+    def fill_latex_exercise_macro(self, ex_info):
+        if ex_info['type'] == 'homework': 
+            return tex_utils.tex_environment(self.cls_wrapper['enviroment']['homework'], 
+                                             tex_utils.tex_command('input', [ex_info['exercise']]), 
+                                             [ex_info['title'], ex_info['points']])
+        elif ex_info['type'] == 'inclass': 
+            return tex_utils.tex_environment(self.cls_wrapper['enviroment']['inclass'], 
+                                             tex_utils.tex_command('input', [ex_info['exercise']]), 
+                                             [ex_info['title']])
+        else:
+            raise ValueError('Unsupported exercise type %s', ex_info['type'])
+
+
+    def fill_latex_solution_macro(self, ex_info):
+        if ex_info['solution'] is not None: 
+            return tex_utils.tex_environment(self.cls_wrapper['enviroment']['solution'],
+                                             tex_utils.tex_command('input', [ex_info['solution']]))
+        return ''
+
+
+    def fill_latex_annotation_macro(self, ex_info): 
+        if ex_info['annotation'] is not None: 
+            return tex_utils.tex_environment(self.cls_wrapper['enviroment']['annotation'], 
+                                             tex_utils.tex_command('input', [ex_info['annotation']]))
+        return ''
+
+
+    def render_latex_template(self, render_solution, render_annotations):
+        # Jinja2 magic to parse latex template
+        latex_jinja_env = jinja2.Environment(variable_start_string='\VAR{',
+                                             variable_end_string='}',
+                                             autoescape=False,
+                                             loader=jinja2.FileSystemLoader(self.sheetinfo['tex_root']))
+        template = latex_jinja_env.get_template(self.sheetinfo['main_template'])
+        
+        disclaimer_tex = ''
+        if self.sheetinfo['disclaimer'] != '': 
+            disclaimer_file = os.path.abspath(self.sheetinfo['disclaimer'])
+            disclaimer_tex = tex_utils.tex_command('input', [disclaimer_file])
+    
+        exercise_list_tex = ''
+        for ex_info in self.exercise_list:
+            exercise_list_tex += self.fill_latex_exercise_macro(ex_info)
+            if render_solution: 
+                exercise_list_tex += self.fill_latex_solution_macro(ex_info)
+            if render_annotations: 
+                exercise_list_tex += self.fill_latex_annotation_macro(ex_info)
+    
+        class_options_list = []
+        if render_solution: 
+            class_options_list.append(self.cls_wrapper['class_option']['show_solution'])
+        if render_annotations: 
+            class_options_list.append(self.cls_wrapper['class_option']['show_annotation'])
+        class_options_list.append(self.sheetinfo['language'])
+        class_options = ','.join(class_options_list)
+        # parse template
+        output_from_rendered_template = template.render(classoptions=class_options,
+                                                        course=self.sheetinfo.get('lecture', 'name of lecture'),
+                                                        semester=self.sheetinfo.get('semester', 'semester'),
+                                                        lecturer=self.sheetinfo.get('lecturer', 'name of lecturer'),
+                                                        releasedate=self.sheetinfo.get('releasedate', 'released today'),
+                                                        deadline=self.sheetinfo.get('deadline', 'today'),
+                                                        sheetno=self.sheetinfo.get('sheetno', '0'),
+                                                        sheetname=self.sheetinfo.get('sheetname', 'Blatt'),
+                                                        disclaimer=disclaimer_tex,
+                                                        path_to_res=os.path.abspath(self.sheetinfo.get('path_to_res', './')),
+                                                        inputlist=exercise_list_tex)
+    
+        # remove old files from build folder
+        old_files = os.listdir(self.sheetinfo['build_folder'])
+        for item in old_files:
+            if item.startswith(self.compilename + '.'):
+                os.remove(os.path.join(self.sheetinfo['build_folder'], item))
+    
+        # write to new file
+        with open(os.path.join(self.sheetinfo['build_folder'], self.compilename + '.tex'), 'w') as fh:
+            fh.write(output_from_rendered_template)
+
+
+    def build_latex_document(self):
+        build_dir = os.path.abspath(self.sheetinfo['build_folder'])
+        build_file = os.path.join(build_dir, self.compilename)
+        latex_command = ['pdflatex', '-synctex=1', '-interaction=nonstopmode', '--shell-escape',
+                        '--output-directory='+build_dir, build_file]    
+        bibtex_command = ['bibtex', self.compilename]
+        
+        logger.info('Compiling Latex Document %s', self.compilename)
+        logger.debug('Latex command %s', latex_command)
+        logger.debug('bibtex_command %s', bibtex_command)
+        
         try: 
-            # go through the latex log file line by line 
-            # when a line starts with '!', it is a latex error
-            # display the line and the following lines for context
-            with open(build_file + '.log', 'r', encoding="utf8", errors='ignore') as texlog: 
-   
-                line = texlog.readline()
-                while line: 
-                    if line.startswith('!'): 
-                        logger.info(line.strip())
-                        i = 0
-                        while i < 5: 
-                            line = texlog.readline()
-                            logger.info(line.strip())
-                            if line.startswith('!'):
-                                i = 0
-                            else: 
-                                i += 1
+            FNULL = open(os.devnull, 'w')
+            with os_utils.ChangedDirectory(self.sheetinfo['tex_root']): 
+                logger.info('Latex: first run')
+                subprocess.check_call(latex_command, stdout=FNULL)
+            with os_utils.ChangedDirectory(build_dir):
+                logger.info('Bibtex')
+                status = subprocess.call(bibtex_command, stdout=FNULL)
+            if status != 0: 
+                logger.warning('Bibtex command exited with error. Status %s', status)
+            with os_utils.ChangedDirectory(self.sheetinfo['tex_root']): 
+                logger.info('Latex: second run')
+                subprocess.check_call(latex_command, stdout=FNULL)
+                logger.info('Latex: third run')
+                subprocess.check_call(latex_command, stdout=FNULL)
+            
+        except subprocess.CalledProcessError as ex:
+            logger.error('Error during compilation of latex document. Exit status: %s', ex.returncode)
+            logger.info('Errors from latex log file follow:')
+            try: 
+                # go through the latex log file line by line 
+                # when a line starts with '!', it is a latex error
+                # display the line and the following lines for context
+                with open(build_file + '.log', 'r', encoding="utf8", errors='ignore') as texlog: 
+       
                     line = texlog.readline()
-            sys.exit(1)
-        except OSError: 
-            logger.warning('Could not open tex log file %s', os.path.join(build_file,'.log'))
-        raise ex
+                    while line: 
+                        if line.startswith('!'): 
+                            logger.info(line.strip())
+                            i = 0
+                            while i < 5: 
+                                line = texlog.readline()
+                                logger.info(line.strip())
+                                if line.startswith('!'):
+                                    i = 0
+                                else: 
+                                    i += 1
+                        line = texlog.readline()
+                sys.exit(1)
+            except OSError: 
+                logger.warning('Could not open tex log file %s', os.path.join(build_file,'.log'))
+            raise ex
 
 
 if __name__ == '__main__':
@@ -270,21 +286,24 @@ if __name__ == '__main__':
         
         os_utils.make_directories_if_nonexistent(sheetinfo['build_folder'])
         
+        cls_wrapper = load_texclass_wrapper(sheetinfo['tex_root'])
+         
+        sheet = Sheet(sheetinfo, exercise_list, cls_wrapper)
+        
         if args.build_exercise: 
-            compilename = sheetinfo['compilename']
-            render_latex_template(compilename, sheetinfo, exercise_list,
-                                  render_solution=False, render_annotations=False)   
-            build_latex_document(compilename, sheetinfo)        
+            sheet.compilename = sheetinfo['compilename']
+            sheet.render_latex_template( render_solution=False,
+                                         render_annotations=False)   
+            sheet.build_latex_document()        
         if args.build_solution: 
-            compilename = sheetinfo['compilename'] + '_solution'
-            render_latex_template(compilename, sheetinfo, exercise_list, 
-                                  render_solution=True, render_annotations=False)
-            build_latex_document(compilename, sheetinfo)
+            sheet.compilename = sheetinfo['compilename'] + '_solution'
+            sheet.render_latex_template( render_solution=True,
+                                         render_annotations=False)
+            sheet.build_latex_document()    
         if args.build_annotation:
-            compilename = sheetinfo['compilename'] + '_annotation'
-            render_latex_template(compilename, sheetinfo, exercise_list, 
-                                  render_solution=True, render_annotations=True)
-            build_latex_document(compilename, sheetinfo)
+            sheet.compilename = sheetinfo['compilename'] + '_annotation'
+            sheet.render_latex_template( render_solution=True,
+                                         render_annotations=True)
             
         logger.info('Creation of %s successfull', sheetinfo['compilename'])
     except Exception as ex:
