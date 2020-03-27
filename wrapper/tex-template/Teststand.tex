@@ -1,36 +1,29 @@
-\documentclass[Loesungen, Punkte]{fbmatheblatt}
-\input{preamble.tex}
-\usepackage{EWPStyle}
+\documentclass[german, solutions, annotations]{fbmatheblatt}
 
-\newcommand{\pathToResource}{./}
-
-\Semester{WS51/52}
-\Veranstaltung{Differentialgleichungen}
-\Blattname{Blatt}
-\Blattnummer{666}
-\Dozenten{Prof. Dr. L. Euler} 
-\Erscheinungsdatum{01.01.1751}
-\Abgabedatum{08.01.1751}
+\semester{WS51/52}
+\lecture{Differentialgleichungen}
+\sheetname{Blatt}
+\sheetno{666}
+\lecturer{Prof. Dr. L. Euler} 
+\releasedate{01.01.1751}
+\deadline{08.01.1751}
 
 \begin{document}	
-	\begin{Blatt}
-		
-		\begin{Disclaimer}
+	\begin{sheet}	
+			
+		\begin{disclaimer}
 			Dies ist ein Teststand um neue Aufgaben zu erstellen, bevor diese in den Pool eingefügt werden. 
-		\end{Disclaimer}
+		\end{disclaimer}
 	
-		\begin{Hausaufgabe}{Exponentielles Wachstum}{2 Punkte}
+		\begin{homework}{Exponentielles Wachstum}{2 Punkte}
 			Lösen sie die DGL $\dot x = x$ mit Anfangsbedingung $x(0) = 1$. 
-		\end{Hausaufgabe}
-		\begin{Loesung}
+		\end{homework}
+		\begin{solution}
 			Die allgemeine Lösung ist $x = c\exp(t)$. 
 			Aus der Anfangsbedingung folgt $1 = c\exp(0) = c$, also ist die Lösung des Anfangswertproblems $x(t) = \exp(t)$. 
-		\end{Loesung}
-		\begin{Punkte}
+		\end{solution}
+		\begin{annotation}
 			1 Punkt für die allgemeine Lösung, 1 Punkt für die Bestimmung der Konstanten. 
-		\end{Punkte}
-	\end{Blatt}
-
-\nobibliography{literature}
-	
+		\end{annotation}
+	\end{sheet}	
 \end{document}

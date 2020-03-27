@@ -1,8 +1,5 @@
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% LATEX-Klasse für Übungsblätter, Fachbereich Mathematik
-%
-%	Version vom 29.04.2016
-%
+% LATEX-Klasse für Übungsblätter, Design für den Fachbereich Mathematik
 %	Autor:	Andreas Roth
 %			KOMMS, FB Mathematik
 %			TU Kaiserslautern
@@ -10,17 +7,19 @@
 %			Tel.: 0631 205 4496
 %			Raum 48-557
 %
-%   modifiziert:
-%   -20.10.2018, Matthias Andres, TUK, mandres@mathematik.uni-kl.de; manueller Übungsblattname (Präsenz, Hausübung)
-%     																										 manueller Name der deadline,
-%																											 loesungen interface
-%   -Gregor Corbin, TUK, corbin@mathematik.uni-kl.de
-%
+%   Maintainer: Gregor Corbin, 
+%               AGTM, FB Mathematik
+%               TU Kaiserslautern
+%               corbin@mathematik.uni-kl.de
+%               
+%               Matthias Andres, 
+%               AGTM, FB Mathematik
+%               TUK,
+%               mandres@mathematik.uni-kl.de
+% 
 %	Die Nutzung ist jedem zur Verwendung in beliebigen Veranstaltungen des
 %	Fachbereichs gestattet. Die Gestaltung ist an das Corporate Design der
 %	Uni Kaiserslautern angelehnt.
-%
-%
 % BENUTZUNG
 % Diese Klasse erbt von exercisesheet.cls
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %

@@ -1,4 +1,15 @@
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% LATEX-class for exercise sheets with solutions, basic functionality
+%   Maintainer: Gregor Corbin, 
+%               AGTM, FB Mathematik
+%               TU Kaiserslautern
+%               corbin@mathematik.uni-kl.de
+%               
+%               Matthias Andres, 
+%               AGTM, FB Mathematik
+%               TUK,
+%               mandres@mathematik.uni-kl.de
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % USAGE:
 %   1. Options: 
 % 	solutions: toggle solution environment, if not given, the content of the environment is commented out
