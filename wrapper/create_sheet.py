@@ -6,15 +6,10 @@
 # 2: parse latex template
 # 3: compile latex file and create pdf
 
-import jinja2
 import sys
-import os
 import argparse
-import configparser
 import logging 
-import subprocess
 
-import tex_utils
 import os_utils
 from defaultlogger import set_default_logging_behavior
 import exercisesheetmanager as esm
