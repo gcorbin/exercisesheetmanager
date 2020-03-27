@@ -155,7 +155,21 @@ class ExerciseSheet:
             return tex_utils.tex_command('inputAnnotation', [exercise_info['annotation']])
         return ''
 
-    def render_latex_template(self, render_solution, render_annotations):
+    def render_latex_template(self, mode='exercise'):
+        render_solution = False
+        render_annotation = False
+        if mode == 'exercise':
+            compile_name = sheet_info['compilename']
+        elif mode == 'solution':
+            compile_name = sheet_info['compilename'] + '_solution'
+            render_solution = True
+        elif mode == 'annotation':
+            compile_name = sheet_info['compilename'] + '_annotation'
+            render_solution = True
+            render_annotation = True
+        else:
+            raise ValueError('Unknown mode "%s". Mode must be exercise, solution, or annotation', mode)
+
         # Jinja2 magic to parse latex template
         latex_jinja_env = jinja2.Environment(variable_start_string='\VAR{',
                                              variable_end_string='}',
@@ -171,15 +185,15 @@ class ExerciseSheet:
         exercise_list_tex = ''
         for exercise_info in self.exercise_list:
             exercise_list_tex += self.fill_latex_task_macro(exercise_info)+'\n'
-            if render_solution: 
+            if render_solution:
                 exercise_list_tex += self.fill_latex_solution_macro(exercise_info)+'\n'
-            if render_annotations: 
+            if render_annotation:
                 exercise_list_tex += self.fill_latex_annotation_macro(exercise_info)+'\n'
 
         class_options_list = []
-        if render_solution: 
+        if render_solution:
             class_options_list.append('solutions')
-        if render_annotations: 
+        if render_annotation:
             class_options_list.append('annotations')
         class_options_list.append(self.sheet_info['language'])
         class_options = ','.join(class_options_list)
@@ -195,34 +209,22 @@ class ExerciseSheet:
                                                         disclaimer=disclaimer_tex,
                                                         path_to_pool=os.path.abspath(self.sheet_info.get('path_to_pool', './')),
                                                         inputlist=exercise_list_tex)
-    
-        # remove old files from build folder
-        old_files = os.listdir(self.sheet_info['build_folder'])
-        for item in old_files:
-            if item.startswith(self.compilename + '.'):
-                os.remove(os.path.join(self.sheet_info['build_folder'], item))
-    
+
+        self.clear_dir(compile_name, except_pdf=False)
         # write to new file
-        with open(os.path.join(self.sheet_info['build_folder'], self.compilename + '.tex'), 'w') as fh:
+        tex_file = os.path.join(self.sheet_info['build_folder'], compile_name + '.tex')
+        with open(tex_file, 'w') as fh:
             fh.write(output_from_rendered_template)
+        return compile_name
 
-    # this removes all auxiliary files, also from other sheets
-    # TODO: only remove files for the current sheet
-    def clear_dir(self):
-        old_files = os.listdir(self.sheet_info['build_folder'])
-        for item in old_files:
-            if not item.endswith('.pdf'):
-                os.remove(os.path.join(self.sheet_info['build_folder'], item))
-
-
-    def build_latex_document(self):
+    def build_latex_document(self, compile_name, clean_after_build=False):
         build_dir = os.path.abspath(self.sheet_info['build_folder'])
-        build_file = os.path.join(build_dir, self.compilename)
+        build_file = os.path.join(build_dir, compile_name)
         latex_command = ['pdflatex', '-synctex=1', '-interaction=nonstopmode', '--shell-escape',
                         '--output-directory='+build_dir, build_file]    
-        bibtex_command = ['bibtex', self.compilename]
+        bibtex_command = ['bibtex', compile_name]
         
-        logger.info('Compiling Latex Document %s', self.compilename)
+        logger.info('Compiling Latex Document %s', compile_name)
         logger.debug('Latex command %s', latex_command)
         logger.debug('bibtex_command %s', bibtex_command)
         
@@ -269,6 +271,19 @@ class ExerciseSheet:
                 logger.warning('Could not open tex log file %s', os.path.join(build_file,'.log'))
             raise ex
 
+        if clean_after_build:
+            self.clear_dir(compile_name, except_pdf=True)
+
+    def clear_dir(self, compile_name, except_pdf=False):
+        logger.debug('Removing files for %s. Keep pdf = %s. Folder: %s', compile_name, except_pdf,
+                     sheet_info['build_folder'])
+        old_files = os.listdir(self.sheet_info['build_folder'])
+        for item in old_files:
+            item_name, item_ext = os.path.splitext(item)
+            if item.startswith(compile_name + '.'):
+                if not except_pdf or not item_ext == '.pdf':
+                    os.remove(os.path.join(self.sheet_info['build_folder'], item))
+
 
 if __name__ == '__main__':
     set_default_logging_behavior(logfile='create_sheet')
@@ -287,34 +302,25 @@ if __name__ == '__main__':
         args.build_exercise = True
     
     try:
-        sheetinfo, exercises_info = load_sheet_data(args)
-        exercise_list = make_exercise_list(sheetinfo, exercises_info)
-        print_sheet_info(sheetinfo, exercise_list)
+        sheet_info, exercises_info = load_sheet_data(args)
+        exercise_list = make_exercise_list(sheet_info, exercises_info)
+        print_sheet_info(sheet_info, exercise_list)
         
-        os_utils.make_directories_if_nonexistent(sheetinfo['build_folder'])
+        os_utils.make_directories_if_nonexistent(sheet_info['build_folder'])
          
-        sheet = ExerciseSheet(sheetinfo, exercise_list)
+        sheet = ExerciseSheet(sheet_info, exercise_list)
         
         if args.build_exercise:
-            sheet.compilename = sheetinfo['compilename']
-            sheet.render_latex_template( render_solution=False,
-                                         render_annotations=False)   
-            sheet.build_latex_document()        
-        if args.build_solution: 
-            sheet.compilename = sheetinfo['compilename'] + '_solution'
-            sheet.render_latex_template( render_solution=True,
-                                         render_annotations=False)
-            sheet.build_latex_document()    
+            compile_name = sheet.render_latex_template(mode='exercise')
+            sheet.build_latex_document(compile_name, args.clean_after_build)
+        if args.build_solution:
+            compile_name = sheet.render_latex_template(mode='solution')
+            sheet.build_latex_document(compile_name, args.clean_after_build)
         if args.build_annotation:
-            sheet.compilename = sheetinfo['compilename'] + '_annotation'
-            sheet.render_latex_template( render_solution=True,
-                                         render_annotations=True)
-            sheet.build_latex_document()
-            
-        if args.clean_after_build:
-            sheet.clear_dir()
-            
-        logger.info('Creation of %s successfull', sheetinfo['compilename'])
+            compile_name = sheet.render_latex_template(mode='annotation')
+            sheet.build_latex_document(compile_name, args.clean_after_build)
+
+        logger.info('Creation of %s successfull', sheet_info['compilename'])
     except Exception as ex:
         logger.critical('', exc_info=ex)
         sys.exit(1)
