@@ -221,14 +221,14 @@
 \newcommand{\inputInclass}[2]{%
 	\begin{inclass}{#2}
 		\renewcommand{\pathToResource}{#1}
-		\input{#1/exercise.tex}
+		\input{#1/task.tex}
 	\end{inclass}
 }
 
 \newcommand{\inputHomework}[3]{%
 	\begin{homework}{#2}{#3}
 		\renewcommand{\pathToResource}{#1}
-		\input{#1/exercise.tex}
+		\input{#1/task.tex}
 	\end{homework}
 }
 
