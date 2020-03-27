@@ -14,29 +14,31 @@ def is_valid_ini_file(file_name):
     return os.path.splitext(file_name)[1] == '.ini' and os.path.isfile(file_name)
 
 
-def load_sheet_data(args):
-    config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
-    if args.course_config is not None and is_valid_ini_file(args.course_config):
-        logger.info('Loading default options from %s', args.course_config)
-        config.read(args.course_config)
+def make_config():
+    return configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+
+
+def load_course_data(config, course_config):
+    if course_config is not None and is_valid_ini_file(course_config):
+        logger.info('Loading default options from %s', course_config)
+        config.read(course_config)
     else:
         logger.info('Did not find a valid course config file. Skipping.')
+
+
+def load_sheet_data(config, sheet_config):
     logger.info('Loading sheet data.')
-    if not is_valid_ini_file(args.sheetinfo):
-        logger.critical('The file %s does not exist or is not an .ini file', args.sheetinfo)
-        raise OSError('Invalid file %s: does not exist or is not a .ini file', args.sheetinfo)
-    config.read(args.sheetinfo)
-    sheet_info = config['sheet_info']
-    sheet_info['language'] = sheet_info.get('language', 'german')
-    sheet_info['disclaimer'] = sheet_info.get('disclaimer', '')
-    sheet_info['build_folder'] = sheet_info.get('build_folder', './build/')
-    sheet_info['ini_name'] = os.path.splitext(os.path.split(args.sheetinfo)[1])[0]
-    exercises_info = config['exercises']
+    if not is_valid_ini_file(sheet_config):
+        logger.critical('The file %s does not exist or is not an .ini file', sheet_config)
+        raise OSError('Invalid file %s: does not exist or is not a .ini file', sheet_config)
+    config.read(sheet_config)
+    config['sheet_info']['language'] = config['sheet_info'].get('language', 'german')
+    config['sheet_info']['disclaimer'] = config['sheet_info'].get('disclaimer', '')
+    config['sheet_info']['build_folder'] = config['sheet_info'].get('build_folder', './build/')
+    config['sheet_info']['ini_name'] = os.path.splitext(os.path.split(sheet_config)[1])[0]
 
     if not config.has_option('sheet_info', 'compilename'):
         raise KeyError("The 'sheet_info.compilename' option must be set in the config file")
-
-    return sheet_info, exercises_info
 
 
 def make_exercise_list(sheet_info, exercises_info):
