@@ -5,7 +5,6 @@ import sys
 import argparse
 import logging
 
-import os
 import os_utils
 from defaultlogger import set_default_logging_behavior
 import exercisesheetmanager as esm
@@ -17,7 +16,8 @@ if __name__ == '__main__':
     set_default_logging_behavior(logfile='create_overview')
 
     logger.debug('parsing args')
-    parser = argparse.ArgumentParser(description='Create an exercise sheet that contains all exercises in the course pool')
+    parser = argparse.ArgumentParser(description='Create an exercise sheet '
+                                                 'that contains all exercises in the course pool')
     parser.add_argument('-c', '--clean-after-build', action='store_true',
                         help='removes files created during building LaTex. Only pdf files remain.')
     parser.add_argument('--course-config', help='read in course config file', type=str, default='course.ini')

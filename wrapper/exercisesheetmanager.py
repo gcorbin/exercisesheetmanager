@@ -10,6 +10,7 @@ import os_utils
 
 logger = logging.getLogger('ExerciseSheetManager')
 
+
 def is_valid_ini_file(file_name):
     return os.path.splitext(file_name)[1] == '.ini' and os.path.isfile(file_name)
 
