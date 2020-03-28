@@ -148,39 +148,6 @@ def list_pool(path_to_pool):
     return exercise_list
 
 
-
-def print_sheet_info(sheet_info, exercise_list):
-    print('\n')
-    print('lecture:\t\t' + sheet_info['lecture'])
-    print('semester:\t\t' + sheet_info['semester'])
-    print('lecturer:\t\t' + sheet_info['lecturer'])
-    print('releasedate:\t\t' + sheet_info['releasedate'])
-    print('deadline:\t\t' + sheet_info['deadline'])
-    print('sheetno:\t\t' + sheet_info['sheetno'])
-    print('sheetname:\t\t' + sheet_info['sheetname'])
-    print('disclaimer:\t\t' + sheet_info['disclaimer'])
-    print('compilename:\t\t' + sheet_info['compilename'])
-    print('resource:\t\t' + sheet_info['path_to_pool'])
-    print('tasks:\t\t')
-    for exercise_info in exercise_list:
-        ex_info_str = exercise_info['id'] + ' : ' + exercise_info['name'] + ' : ' + exercise_info['type'] + '("' + \
-                      exercise_info['title']
-        if exercise_info['type'] == 'homework':
-            ex_info_str += '" , "' + exercise_info['points']
-        ex_info_str += '")' + ' : '
-        if exercise_info['solution'] is not None:
-            ex_info_str += 'solution'
-        else:
-            ex_info_str += 'no solution'
-        ex_info_str += ' , '
-        if exercise_info['annotation'] is not None:
-            ex_info_str += 'annotation'
-        else:
-            ex_info_str += 'no annotation'
-        print('\t\t\t' + ex_info_str)
-    print('\n')
-
-
 class ExerciseSheet:
     def __init__(self, sheet_info, exercise_list):
         self.sheet_info = sheet_info
@@ -334,3 +301,33 @@ class ExerciseSheet:
                 if not except_pdf or not item_ext == '.pdf':
                     os.remove(os.path.join(self.sheet_info['build_folder'], item))
 
+    def print_info(self):
+        print('\n')
+        print('lecture:\t\t' + self.sheet_info['lecture'])
+        print('semester:\t\t' + self.sheet_info['semester'])
+        print('lecturer:\t\t' + self.sheet_info['lecturer'])
+        print('releasedate:\t\t' + self.sheet_info['releasedate'])
+        print('deadline:\t\t' + self.sheet_info['deadline'])
+        print('sheetno:\t\t' + self.sheet_info['sheetno'])
+        print('sheetname:\t\t' + self.sheet_info['sheetname'])
+        print('disclaimer:\t\t' + self.sheet_info['disclaimer'])
+        print('compilename:\t\t' + self.sheet_info['compilename'])
+        print('resource:\t\t' + self.sheet_info['path_to_pool'])
+        print('tasks:\t\t')
+        for exercise_info in self.exercise_list:
+            ex_info_str = exercise_info['id'] + ' : ' + exercise_info['name'] + ' : ' + exercise_info['type'] + '("' + \
+                          exercise_info['title']
+            if exercise_info['type'] == 'homework':
+                ex_info_str += '" , "' + exercise_info['points']
+            ex_info_str += '")' + ' : '
+            if exercise_info['solution'] is not None:
+                ex_info_str += 'solution'
+            else:
+                ex_info_str += 'no solution'
+            ex_info_str += ' , '
+            if exercise_info['annotation'] is not None:
+                ex_info_str += 'annotation'
+            else:
+                ex_info_str += 'no annotation'
+            print('\t\t\t' + ex_info_str)
+        print('\n')

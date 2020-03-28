@@ -37,11 +37,10 @@ if __name__ == '__main__':
     try:
         sheet_info, exercises_info = esm.load_sheet_and_exercise_info(args.course_config, args.sheetinfo)
         exercise_list = esm.make_exercise_list(sheet_info, exercises_info)
-        esm.print_sheet_info(sheet_info, exercise_list)
-        
         os_utils.make_directories_if_nonexistent(sheet_info['build_folder'])
-         
+
         sheet = esm.ExerciseSheet(sheet_info, exercise_list)
+        sheet.print_info()
         
         if args.build_exercise:
             compile_name = sheet.render_latex_template(mode='exercise')

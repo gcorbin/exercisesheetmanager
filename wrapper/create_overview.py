@@ -28,10 +28,10 @@ if __name__ == '__main__':
         sheet_info['compilename'] = 'overview'
 
         exercise_list = esm.list_pool(sheet_info['path_to_pool'])
-        esm.print_sheet_info(sheet_info, exercise_list)
         os_utils.make_directories_if_nonexistent(sheet_info['build_folder'])
 
         sheet = esm.ExerciseSheet(sheet_info, exercise_list)
+        sheet.print_info()
 
         compile_name = sheet.render_latex_template(mode='exercise')
         sheet.build_latex_document(compile_name, args.clean_after_build)
