@@ -30,6 +30,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--clean-after-build', action='store_true',
                         help='removes files created during building LaTex. Only pdf files remain.')
     parser.add_argument('--course-config', help='read in course config file', type=str, default='course.ini')
+    parser.add_argument('-x', '--export', type=str, default=None, help='Export everything into the given folder')
     args = parser.parse_args()
     if not args.build_exercise and not args.build_solution and not args.build_annotation:
         args.build_exercise = True
@@ -40,6 +41,9 @@ if __name__ == '__main__':
         os_utils.make_directories_if_nonexistent(sheet_info['build_folder'])
 
         sheet = esm.ExerciseSheet(sheet_info, exercise_list)
+        if args.export is not None:
+            sheet.patch_for_export()
+            sheet.export()
         sheet.print_info()
         
         if args.build_exercise:

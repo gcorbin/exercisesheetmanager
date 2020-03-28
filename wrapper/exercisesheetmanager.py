@@ -302,6 +302,12 @@ class ExerciseSheet:
                 if not except_pdf or not item_ext == '.pdf':
                     os.remove(os.path.join(self.sheet_info['build_folder'], item))
 
+    def patch_for_export(self):
+        pass
+
+    def export(self):
+        pass
+
     def print_info(self):
         print('\n')
         print('lecture:\t\t' + self.sheet_info['lecture'])
