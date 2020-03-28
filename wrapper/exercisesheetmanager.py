@@ -15,30 +15,55 @@ def is_valid_ini_file(file_name):
 
 
 def make_config():
-    return configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+    config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+    config.read_dict({'sheet_info': {'lecture': '',
+                                     'semester': '',
+                                     'lecturer': '',
+                                     'language': 'german',
+                                     'disclaimer': '',
+                                     'build_folder': './build/',
+                                     'releasedate': '',
+                                     'deadline': '',
+                                     'sheetno': '0',
+                                     'sheetname': 'Blatt'}
+                      })
+    return config
 
 
-def load_course_data(config, course_config):
-    if course_config is not None and is_valid_ini_file(course_config):
-        logger.info('Loading default options from %s', course_config)
-        config.read(course_config)
+def load_course_ini(config, course_config_file):
+    if course_config_file is not None and is_valid_ini_file(course_config_file):
+        logger.info('Loading default options from %s', course_config_file)
+        config.read(course_config_file)
+        config['sheet_info']['course_ini_name'] = os.path.splitext(os.path.split(course_config_file)[1])[0]
     else:
         logger.info('Did not find a valid course config file. Skipping.')
 
 
-def load_sheet_data(config, sheet_config):
+def load_sheet_ini(config, sheet_config_file):
     logger.info('Loading sheet data.')
-    if not is_valid_ini_file(sheet_config):
-        logger.critical('The file %s does not exist or is not an .ini file', sheet_config)
-        raise OSError('Invalid file %s: does not exist or is not a .ini file', sheet_config)
-    config.read(sheet_config)
-    config['sheet_info']['language'] = config['sheet_info'].get('language', 'german')
-    config['sheet_info']['disclaimer'] = config['sheet_info'].get('disclaimer', '')
-    config['sheet_info']['build_folder'] = config['sheet_info'].get('build_folder', './build/')
-    config['sheet_info']['ini_name'] = os.path.splitext(os.path.split(sheet_config)[1])[0]
-
+    if not is_valid_ini_file(sheet_config_file):
+        logger.critical('The file %s does not exist or is not an .ini file', sheet_config_file)
+        raise OSError('Invalid file %s: does not exist or is not a .ini file', sheet_config_file)
+    config.read(sheet_config_file)
+    config['sheet_info']['sheet_ini_name'] = os.path.splitext(os.path.split(sheet_config_file)[1])[0]
     if not config.has_option('sheet_info', 'compilename'):
         raise KeyError("The 'sheet_info.compilename' option must be set in the config file")
+
+
+def load_course_info(course_config_file):
+    config = make_config()
+    load_course_ini(config, course_config_file)
+    course_info = config['sheet_info']
+    return course_info
+
+
+def load_sheet_and_exercise_info(course_config_file, sheet_config_file):
+    config = make_config()
+    load_course_ini(config, course_config_file)
+    load_sheet_ini(config, sheet_config_file)
+    sheet_info = config['sheet_info']
+    exercises_info = config['exercises']
+    return sheet_info, exercises_info
 
 
 def make_exercise_list(sheet_info, exercises_info):
@@ -68,7 +93,7 @@ def make_exercise_list(sheet_info, exercises_info):
             logger.warning('The exercise %s does not have a solution.', exercise_name)
             solution_tex_file = None
 
-        annotation_tex_file = os.path.abspath(sheet_info['ini_name'] + '_' + key + '.tex')
+        annotation_tex_file = os.path.abspath(sheet_info['sheet_ini_name'] + '_' + key + '.tex')
         if not os.path.isfile(annotation_tex_file):
             logger.debug('%s: File not found: %s.', key, annotation_tex_file)
             logger.debug('%s: No annotation is attached to exercise %s.', key, exercise_name)
@@ -97,6 +122,31 @@ def make_exercise_list(sheet_info, exercises_info):
                               'points': task_points}
         exercise_list.append(exercise_info_dict)
     return exercise_list
+
+
+def list_pool(path_to_pool):
+    exercise_list = []
+    exercises = os.listdir(path_to_pool)
+    for exercise_name in exercises:
+        exercise_dir = os.path.abspath(os.path.join(path_to_pool, exercise_name))
+        if os.path.isdir(exercise_dir):
+            task_tex_file = os.path.join(exercise_dir, 'task.tex')
+            if not os.path.isfile(task_tex_file):
+                logger.debug('%s: File not found: %.s', exercise_name, task_tex_file)
+                logger.error('Skipping nonexistent exercise: %s.', exercise_name)
+                continue
+            exercise_info_dict = {'id': exercise_name,
+                                  'name': exercise_name,
+                                  'type': 'inclass',
+                                  'title': exercise_name,
+                                  'root_dir': exercise_dir,
+                                  'task': task_tex_file,
+                                  'solution': None,
+                                  'annotation': None,
+                                  'points': ''}
+            exercise_list.append(exercise_info_dict)
+    return exercise_list
+
 
 
 def print_sheet_info(sheet_info, exercise_list):

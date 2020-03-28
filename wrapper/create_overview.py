@@ -24,32 +24,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     try:
-        config = esm.make_config()
-        esm.load_course_data(config, args.course_config)
-        sheet_info = config['sheet_info']
+        sheet_info = esm.load_course_info(args.course_config)
         sheet_info['compilename'] = 'overview'
 
-        exercise_list = []
-        exercises = os.listdir(sheet_info['path_to_pool'])
-        for ex in exercises:
-            ex_path = os.path.abspath(os.path.join(sheet_info['path_to_pool'], ex))
-            if os.path.isdir(ex_path):
-                task_tex_file = os.path.join(ex_path, 'task.tex')
-                if not os.path.isfile(task_tex_file):
-                    logger.debug('%s: File not found: %.s', key, task_tex_file)
-                    logger.error('Skipping nonexistent exercise: %s.', exercise_name)
-                    continue
-                exercise_info_dict = {'id': ex,
-                                      'name': ex,
-                                      'type': 'inclass',
-                                      'title': ex,
-                                      'root_dir': ex_path,
-                                      'task': task_tex_file,
-                                      'solution': None,
-                                      'annotation': None,
-                                      'points': ''}
-                exercise_list.append(exercise_info_dict)
-
+        exercise_list = esm.list_pool(sheet_info['path_to_pool'])
         esm.print_sheet_info(sheet_info, exercise_list)
         os_utils.make_directories_if_nonexistent(sheet_info['build_folder'])
 

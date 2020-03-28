@@ -35,12 +35,7 @@ if __name__ == '__main__':
         args.build_exercise = True
     
     try:
-        config = esm.make_config()
-        esm.load_course_data(config, args.course_config)
-        esm.load_sheet_data(config, args.sheetinfo)
-        sheet_info = config['sheet_info']
-        exercises_info = config['exercises']
-
+        sheet_info, exercises_info = esm.load_sheet_and_exercise_info(args.course_config, args.sheetinfo)
         exercise_list = esm.make_exercise_list(sheet_info, exercises_info)
         esm.print_sheet_info(sheet_info, exercise_list)
         
