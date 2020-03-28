@@ -119,7 +119,7 @@ def updateIndex( ix, pool_path ):
 
 if __name__ == '__main__':
     
-    set_default_logging_behavior(logfile=None)
+    set_default_logging_behavior(logfile='exsec')
     
      # parse input arguments ---------------------------------------------------
     parser = argparse.ArgumentParser(description='advanced search an exercise pool')
@@ -147,7 +147,7 @@ if __name__ == '__main__':
          logger.fatal( 'pool ' + args.path_to_pool + ' does not exist.')
          sys.exit(1)
     
-    index_dir = args.path_to_pool + '/.search_index'
+    index_dir = os.path.join(args.path_to_pool,'.search_index')
     
     if args.update:
         if not os.path.exists(index_dir):
@@ -157,7 +157,7 @@ if __name__ == '__main__':
         updateIndex(ix, args.path_to_pool)
     else:
         if not os.path.exists(index_dir):
-            logger.fatal( index_dir + ' does not exist. create is with -u option')
+            logger.fatal('%s does not exist. create is with -u option', index_dir)
             sys.exit(1)
         ix = open_dir(index_dir)
         
