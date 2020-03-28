@@ -19,3 +19,4 @@
 ## explicitly exclude 
 /**/bld/
 /**/build/
+/**/.search_index/
