@@ -151,13 +151,14 @@ def list_pool(path_to_pool):
 
 def print_sheet_info(sheet_info, exercise_list):
     print('\n')
-    print('lecture:\t\t' + sheet_info.get('lecture', 'name of lecture'))
-    print('lecturer:\t\t' + sheet_info.get('lecturer', 'name of lecturer'))
-    print('releasedate:\t\t' + sheet_info.get('releasedate', 'released today'))
-    print('deadline:\t\t' + sheet_info.get('deadline', 'today'))
-    print('sheetno:\t\t' + sheet_info.get('sheetno', '0'))
-    print('sheetname:\t\t' + sheet_info.get('sheetname', 'exercise'))
-    print('disclaimer:\t\t' + sheet_info.get('disclaimer', 'empty_disclaimer'))
+    print('lecture:\t\t' + sheet_info['lecture'])
+    print('semester:\t\t' + sheet_info['semester'])
+    print('lecturer:\t\t' + sheet_info['lecturer'])
+    print('releasedate:\t\t' + sheet_info['releasedate'])
+    print('deadline:\t\t' + sheet_info['deadline'])
+    print('sheetno:\t\t' + sheet_info['sheetno'])
+    print('sheetname:\t\t' + sheet_info['sheetname'])
+    print('disclaimer:\t\t' + sheet_info['disclaimer'])
     print('compilename:\t\t' + sheet_info['compilename'])
     print('resource:\t\t' + sheet_info['path_to_pool'])
     print('tasks:\t\t')
@@ -248,17 +249,15 @@ class ExerciseSheet:
         class_options = ','.join(class_options_list)
         # parse template
         output_from_rendered_template = template.render(classoptions=class_options,
-                                                        course=self.sheet_info.get('lecture', 'name of lecture'),
-                                                        semester=self.sheet_info.get('semester', 'semester'),
-                                                        lecturer=self.sheet_info.get('lecturer', 'name of lecturer'),
-                                                        releasedate=self.sheet_info.get('releasedate',
-                                                                                        'released today'),
-                                                        deadline=self.sheet_info.get('deadline', 'today'),
-                                                        sheetno=self.sheet_info.get('sheetno', '0'),
-                                                        sheetname=self.sheet_info.get('sheetname', 'Blatt'),
+                                                        course=self.sheet_info['lecture'],
+                                                        semester=self.sheet_info['semester'],
+                                                        lecturer=self.sheet_info['lecturer'],
+                                                        releasedate=self.sheet_info['releasedate'],
+                                                        deadline=self.sheet_info['deadline'],
+                                                        sheetno=self.sheet_info['sheetno'],
+                                                        sheetname=self.sheet_info['sheetname'],
                                                         disclaimer=disclaimer_tex,
-                                                        path_to_pool=os.path.abspath(
-                                                            self.sheet_info.get('path_to_pool', './')),
+                                                        path_to_pool=os.path.abspath(self.sheet_info['path_to_pool']),
                                                         inputlist=exercise_list_tex)
 
         self.clear_dir(compile_name, except_pdf=False)
