@@ -5,12 +5,25 @@ import logging
 logger = logging.getLogger('ExerciseSheetManager.'+__name__)
 
 
-def make_directories_if_nonexistent(path):
+def mkdir_if_nonexistent(path):
     if not os.path.isdir(path):
         logger.debug('Making new directory %s', path)
+        os.mkdir(path)
+
+
+def make_directories_if_nonexistent(path):
+    if not os.path.isdir(path):
+        logger.debug('Recursively making new directory %s', path)
         os.makedirs(path)
-        
-        
+
+
+def abs_path_switch(path, abs_path=True):
+    if abs_path:
+        return os.path.abspath(path)
+    else:
+        return path
+
+
 class ChangedDirectory:
 
     def __init__(self, path):

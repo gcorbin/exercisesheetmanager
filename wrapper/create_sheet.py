@@ -8,7 +8,7 @@
 
 import sys
 import argparse
-import logging 
+import logging
 
 import os_utils
 from defaultlogger import set_default_logging_behavior
@@ -32,20 +32,26 @@ if __name__ == '__main__':
     parser.add_argument('--course-config', help='read in course config file', type=str, default='course.ini')
     parser.add_argument('-x', '--export', type=str, default=None, help='Export everything into the given folder')
     args = parser.parse_args()
-    if not args.build_exercise and not args.build_solution and not args.build_annotation:
-        args.build_exercise = True
+    '''if not args.build_exercise and not args.build_solution and not args.build_annotation:
+        args.build_exercise = True'''
     
     try:
         sheet_info, exercises_info = esm.load_sheet_and_exercise_info(args.course_config, args.sheetinfo)
         exercise_list = esm.make_exercise_list(sheet_info, exercises_info)
+
+        if args.export is not None:
+            logger.info('Exporting to %s', args.export)
+            sheet_info_export = esm.patch_for_export(sheet_info, args.export)
+            esm.export_data(sheet_info, sheet_info_export, exercise_list)
+            sheet_info = sheet_info_export
+            with os_utils.ChangedDirectory(sheet_info['export_root']):
+                exercise_list = esm.make_exercise_list(sheet_info, exercises_info)
+
         os_utils.make_directories_if_nonexistent(sheet_info['build_folder'])
 
         sheet = esm.ExerciseSheet(sheet_info, exercise_list)
-        if args.export is not None:
-            sheet.patch_for_export()
-            sheet.export()
         sheet.print_info()
-        
+
         if args.build_exercise:
             compile_name = sheet.render_latex_template(mode='exercise')
             sheet.build_latex_document(compile_name, args.clean_after_build)

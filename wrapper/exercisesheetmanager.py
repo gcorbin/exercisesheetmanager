@@ -1,9 +1,11 @@
 import jinja2
 import sys
 import os
+import shutil
 import configparser
 import logging
 import subprocess
+import copy
 
 import tex_utils
 import os_utils
@@ -17,7 +19,8 @@ def is_valid_ini_file(file_name):
 
 def make_config():
     config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
-    config.read_dict({'sheet_info': {'lecture': '',
+    config.read_dict({'sheet_info': {'export_root': '.',
+                                     'lecture': '',
                                      'semester': '',
                                      'lecturer': '',
                                      'language': 'german',
@@ -67,7 +70,13 @@ def load_sheet_and_exercise_info(course_config_file, sheet_config_file):
     return sheet_info, exercises_info
 
 
+def is_export_enabled(sheet_info):
+    return sheet_info['export_root'] != '.'
+
+
 def make_exercise_list(sheet_info, exercises_info):
+    use_abs_path = not is_export_enabled(sheet_info)
+
     exercise_list = []
     for (key, value) in exercises_info.items():
         exercise = [x.strip() for x in value.split('&&')]
@@ -80,7 +89,7 @@ def make_exercise_list(sheet_info, exercises_info):
             task_type = 'inclass'
 
         exercise_name = exercise[1]
-        exercise_dir = os.path.abspath(os.path.join(sheet_info['path_to_pool'], exercise_name))
+        exercise_dir = os_utils.abs_path_switch(os.path.join(sheet_info['path_to_pool'], exercise_name), use_abs_path)
 
         task_tex_file = os.path.join(exercise_dir, 'task.tex')
         if not os.path.isfile(task_tex_file):
@@ -94,7 +103,7 @@ def make_exercise_list(sheet_info, exercises_info):
             logger.warning('The exercise %s does not have a solution.', exercise_name)
             solution_tex_file = None
 
-        annotation_tex_file = os.path.abspath(sheet_info['sheet_ini_name'] + '_' + key + '.tex')
+        annotation_tex_file = os_utils.abs_path_switch(os.path.join(sheet_info['sheet_ini_name'] + '_' + key + '.tex'), use_abs_path)
         if not os.path.isfile(annotation_tex_file):
             logger.debug('%s: File not found: %s.', key, annotation_tex_file)
             logger.debug('%s: No annotation is attached to exercise %s.', key, exercise_name)
@@ -149,6 +158,61 @@ def list_pool(path_to_pool):
     return exercise_list
 
 
+def patch_for_export(sheet_info, export_path):
+    sheet_info_export = dict(sheet_info)
+    '''if not os.path.isdir(export_path):
+        raise NotADirectoryError('Export directory %s does not exist')'''
+
+    export_root = os.path.abspath(export_path)
+    sheet_info_export['export_root'] = export_root
+    sheet_info_export['path_to_pool'] = '.'
+    sheet_info_export['tex_root'] = export_root
+    sheet_info_export['build_folder'] = '.'
+    return sheet_info_export
+
+
+def export_data(sheet_info, sheet_info_export, exercise_list):
+    export_root = sheet_info_export['export_root']
+    logger.info('Exporting sheet to %s', export_root)
+    try:
+        logger.debug('Making new directory %s', export_root)
+        os.mkdir(export_root)
+    except FileExistsError as ex:
+        logger.critical('The export directory %s already exists.', export_root)
+        raise
+
+    # copy disclaimer
+    if os.path.isfile(sheet_info['disclaimer']):
+        shutil.copy2(sheet_info['disclaimer'], export_root)
+
+    # copy the exercises
+    for ex in exercise_list:
+        try:
+            shutil.copytree(ex['root_dir'], os.path.join(export_root, ex['name']))
+        except FileExistsError as fex:
+            pass
+            # this happens if the same exercise appears more than once in a sheet
+            # in python3.8, we could call shutil.copytree(dirs_exist_ok=True) instead
+        if ex['annotation'] is not None:
+            shutil.copy2(ex['annotation'], export_root)
+
+    # copy top-level files in the pool
+    for file_name in os.listdir(sheet_info['path_to_pool']):
+        file_ext = os.path.splitext(file_name)[1]
+        file_path = os.path.join(sheet_info['path_to_pool'], file_name)
+        if os.path.isfile(file_path) and file_ext in ['.tex', '.bib']:
+            logger.debug('Copying %s to %s', file_path, export_root)
+            shutil.copy2(file_path, export_root)
+
+    # copy the tex-template
+    for file_name in os.listdir(sheet_info['tex_root']):
+        file_ext = os.path.splitext(file_name)[1]
+        file_path = os.path.join(sheet_info['tex_root'], file_name)
+        if os.path.isfile(file_path) and file_ext not in ['.aux', '.log', '.out', 'synctex.gz']:
+            logger.debug('Copying %s to %s', file_path, export_root)
+            shutil.copy2(file_path, export_root)
+
+
 class ExerciseSheet:
     def __init__(self, sheet_info, exercise_list):
         self.sheet_info = sheet_info
@@ -174,6 +238,12 @@ class ExerciseSheet:
         return ''
 
     def render_latex_template(self, mode='exercise'):
+        use_abs_path = not is_export_enabled(self.sheet_info)
+        if is_export_enabled(self.sheet_info):
+            write_to = self.sheet_info['export_root']
+        else:
+            write_to = '.'
+
         render_solution = False
         render_annotation = False
         if mode == 'exercise':
@@ -197,7 +267,7 @@ class ExerciseSheet:
 
         disclaimer_tex = ''
         if self.sheet_info['disclaimer'] != '':
-            disclaimer_file = os.path.abspath(self.sheet_info['disclaimer'])
+            disclaimer_file = os_utils.abs_path_switch(self.sheet_info['disclaimer'], use_abs_path)
             disclaimer_tex = tex_utils.tex_command('input', [disclaimer_file])
 
         exercise_list_tex = ''
@@ -225,12 +295,12 @@ class ExerciseSheet:
                                                         sheetno=self.sheet_info['sheetno'],
                                                         sheetname=self.sheet_info['sheetname'],
                                                         disclaimer=disclaimer_tex,
-                                                        path_to_pool=os.path.abspath(self.sheet_info['path_to_pool']),
+                                                        path_to_pool=os_utils.abs_path_switch(self.sheet_info['path_to_pool'], use_abs_path),
                                                         inputlist=exercise_list_tex)
 
         self.clear_dir(compile_name, except_pdf=False)
         # write to new file
-        tex_file = os.path.join(self.sheet_info['build_folder'], compile_name + '.tex')
+        tex_file = os.path.join(write_to, self.sheet_info['build_folder'], compile_name + '.tex')
         with open(tex_file, 'w') as fh:
             fh.write(output_from_rendered_template)
         return compile_name
@@ -301,12 +371,6 @@ class ExerciseSheet:
             if item.startswith(compile_name + '.'):
                 if not except_pdf or not item_ext == '.pdf':
                     os.remove(os.path.join(self.sheet_info['build_folder'], item))
-
-    def patch_for_export(self):
-        pass
-
-    def export(self):
-        pass
 
     def print_info(self):
         print('\n')
