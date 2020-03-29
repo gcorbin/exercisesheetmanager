@@ -90,6 +90,7 @@ def make_exercise_list(sheet_info, exercises_info):
 
         exercise_name = exercise[1]
         exercise_dir = os_utils.abs_path_switch(os.path.join(sheet_info['path_to_pool'], exercise_name), use_abs_path)
+        logger.info('exercise dir = %s', exercise_dir)
 
         task_tex_file = os.path.join(exercise_dir, 'task.tex')
         if not os.path.isfile(task_tex_file):
@@ -167,7 +168,7 @@ def patch_for_export(sheet_info, export_path):
     sheet_info_export['export_root'] = export_root
     sheet_info_export['path_to_pool'] = '.'
     sheet_info_export['tex_root'] = export_root
-    sheet_info_export['build_folder'] = '.'
+    sheet_info_export['build_folder'] = export_root
     return sheet_info_export
 
 
@@ -400,5 +401,6 @@ class ExerciseSheet:
                 ex_info_str += 'annotation'
             else:
                 ex_info_str += 'no annotation'
+            #ex_info_str += ' : ' + exercise_info['root_dir']
             print('\t\t\t' + ex_info_str)
         print('\n')

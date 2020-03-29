@@ -43,7 +43,7 @@ if __name__ == '__main__':
             logger.info('Exporting to %s', args.export)
             sheet_info_export = esm.patch_for_export(sheet_info, args.export)
             esm.export_data(sheet_info, sheet_info_export, exercise_list)
-            sheet_info = sheet_info_export
+            sheet_info = dict(sheet_info_export)
             with os_utils.ChangedDirectory(sheet_info['export_root']):
                 exercise_list = esm.make_exercise_list(sheet_info, exercises_info)
 
