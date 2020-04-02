@@ -23,17 +23,18 @@ if __name__ == '__main__':
     logger.debug('parsing args')
     parser = argparse.ArgumentParser(description='Create exercise sheet.')
     parser.add_argument('sheetinfo', type=str,
-                        help='py file containing sheet information')
+                        help='.ini file containing sheet information')
+    parser.add_argument('-cc', '--course-config', help='read in course config file', type=str, default='course.ini')
     parser.add_argument('-e', '--build-exercise', action='store_true')
     parser.add_argument('-s', '--build-solution', action='store_true')
     parser.add_argument('-a', '--build-annotation', action='store_true')
-    parser.add_argument('-c', '--clean-after-build', action='store_true',
-                        help='removes files created during building LaTex. Only pdf files remain.')
-    parser.add_argument('-cc', '--course-config', help='read in course config file', type=str, default='course.ini')
-    parser.add_argument('-x', '--export', type=str, default=None, help='Export everything into the given folder')
+
+    clean_or_export = parser.add_mutually_exclusive_group()
+    clean_or_export.add_argument('-c', '--clean-after-build', action='store_true',
+                                 help='removes files created during building LaTex. Only pdf files remain.')
+    clean_or_export.add_argument('-x', '--export', type=str, default=None,
+                                 help='Export everything into the given folder')
     args = parser.parse_args()
-    '''if not args.build_exercise and not args.build_solution and not args.build_annotation:
-        args.build_exercise = True'''
     
     try:
         sheet_info, exercises_info = esm.load_sheet_and_exercise_info(args.course_config, args.sheetinfo)
