@@ -90,7 +90,6 @@ def make_exercise_list(sheet_info, exercises_info):
 
         exercise_name = exercise[1]
         exercise_dir = os_utils.abs_path_switch(os.path.join(sheet_info['path_to_pool'], exercise_name), use_abs_path)
-        logger.info('exercise dir = %s', exercise_dir)
 
         task_tex_file = os.path.join(exercise_dir, 'task.tex')
         if not os.path.isfile(task_tex_file):
