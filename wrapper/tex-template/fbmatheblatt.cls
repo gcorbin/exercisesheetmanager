@@ -70,8 +70,8 @@
 %
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
-
-\LoadClassWithOptions{exercisesheet}
+\providecommand{\proot}{.}
+\LoadClassWithOptions{\proot/exercisesheet}
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{fbmatheblatt}[2020/03/26 Uebungsblatt FB Mathematik]
 
@@ -144,7 +144,7 @@
 		};
 	\end{tikzpicture}%\includegraphics[width=5.1cm]{Logos/TUKL_LOGO_FELD_UNTEN_4C.pdf}
 }
-\cfoot{\includegraphics[width=5.1cm]{TUKL_LOGO_FELD_UNTEN_4C.pdf}}
+\cfoot{\includegraphics[width=5.1cm]{\proot/TUKL_LOGO_FELD_UNTEN_4C.pdf}}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % GEOMETRIE setzen
