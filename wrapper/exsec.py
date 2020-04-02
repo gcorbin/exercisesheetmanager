@@ -21,6 +21,9 @@ import textwrap
 import datetime
 from dateutil.parser import parse as parse_date
 
+import configparser
+import exercisesheetmanager as esm
+
 import logging
 from defaultlogger import set_default_logging_behavior
 logger = logging.getLogger('ExerciseSheetManager.exsec')
@@ -125,13 +128,24 @@ if __name__ == '__main__':
     
     # parse input arguments ---------------------------------------------------
     parser = argparse.ArgumentParser(description='advanced search an exercise pool')
-    parser.add_argument('-p', '--path-to-pool', action="store", help='path to pool')
+    pool = parser.add_mutually_exclusive_group(required=False)
+    pool.add_argument('-p', '--path-to-pool', action="store", help='path to pool')
+    pool.add_argument('-cc', '--course-config', type=str, help='the course config file', default='course.ini')
     parser.add_argument('-u', '--update', action="store_true", help='update the index')
     parser.add_argument('-n', action="store", help='maximal number of printed results (default=10)', default=10)
     parser.add_argument('-q', action="store", help='query in fields: "name","description","language","keywords","format". \
                         Query syntax: https://whoosh.readthedocs.io/en/latest/querylang.html \ ')
     
     args = parser.parse_args()
+
+    if args.path_to_pool is not None:
+        path_to_pool = args.path_to_pool
+    else:
+        if not esm.is_valid_ini_file(args.course_config):
+            raise FileNotFoundError('{} is not a valid .ini file'.format(args.course_config))
+        config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+        esm.load_course_ini(config, args.course_config)
+        path_to_pool = config['sheet_info']['path_to_pool']
     
     # define index schema ------------------------------------------------------
     schema = Schema(folder_name=NGRAM(stored=True, minsize=2, maxsize=10),
@@ -145,18 +159,18 @@ if __name__ == '__main__':
     
     # create or open existing index
     
-    if not os.path.exists(args.path_to_pool):
-        logger.fatal('pool ' + args.path_to_pool + ' does not exist.')
+    if not os.path.exists(path_to_pool):
+        logger.fatal('pool ' + path_to_pool + ' does not exist.')
         sys.exit(1)
     
-    index_dir = os.path.join(args.path_to_pool, '.search_index')
+    index_dir = os.path.join(path_to_pool, '.search_index')
     
     if args.update:
         if not os.path.exists(index_dir):
             os.mkdir(index_dir)
 
         ix = create_in(index_dir, schema)
-        updateIndex(ix, args.path_to_pool)
+        updateIndex(ix, path_to_pool)
     else:
         if not os.path.exists(index_dir):
             logger.fatal('%s does not exist. create is with -u option', index_dir)
