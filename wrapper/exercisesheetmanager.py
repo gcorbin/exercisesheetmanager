@@ -13,6 +13,19 @@ import os_utils
 logger = logging.getLogger('ExerciseSheetManager')
 
 
+def make_build_sequence(args):
+    if args.build_sequence is not None:
+        build_sequence = args.build_sequence
+    elif args.full:
+        build_sequence = 'lbll'
+    elif args.no_build:
+        build_sequence = ''
+    else:
+        args.quick = True
+        build_sequence = 'l'
+    return build_sequence
+
+
 def is_valid_ini_file(file_name):
     return os.path.splitext(file_name)[1] == '.ini' and os.path.isfile(file_name)
 
@@ -298,14 +311,14 @@ class ExerciseSheet:
                                                         path_to_pool=os_utils.abs_path_switch(self.sheet_info['path_to_pool'], use_abs_path),
                                                         inputlist=exercise_list_tex)
 
-        self.clear_dir(compile_name, except_pdf=False)
+        self.clear_dir(compile_name, except_pdf=True)
         # write to new file
         tex_file = os.path.join(write_to, self.sheet_info['build_folder'], compile_name + '.tex')
         with open(tex_file, 'w') as fh:
             fh.write(output_from_rendered_template)
         return compile_name
 
-    def build_latex_document(self, compile_name, clean_after_build=False):
+    def build_latex_document(self, compile_name, build_sequence='l', clean_after_build=False):
         build_dir = os.path.abspath(self.sheet_info['build_folder'])
         build_file = os.path.join(build_dir, compile_name)
         latex_command = ['pdflatex', '-synctex=1', '-interaction=nonstopmode', '--shell-escape',
@@ -315,22 +328,38 @@ class ExerciseSheet:
         logger.info('Compiling Latex Document %s', compile_name)
         logger.debug('Latex command %s', latex_command)
         logger.debug('bibtex_command %s', bibtex_command)
+        logger.debug('build sequence %s', build_sequence)
 
         try:
             FNULL = open(os.devnull, 'w')
-            with os_utils.ChangedDirectory(self.sheet_info['tex_root']):
-                logger.info('Latex: first run')
-                subprocess.check_call(latex_command, stdout=FNULL)
-            with os_utils.ChangedDirectory(build_dir):
-                logger.info('Bibtex')
-                status = subprocess.call(bibtex_command, stdout=FNULL)
-            if status != 0:
-                logger.warning('Bibtex command exited with error. Status %s', status)
-            with os_utils.ChangedDirectory(self.sheet_info['tex_root']):
-                logger.info('Latex: second run')
-                subprocess.check_call(latex_command, stdout=FNULL)
-                logger.info('Latex: third run')
-                subprocess.check_call(latex_command, stdout=FNULL)
+            latex_count = 0
+            bibtex_count = 0
+            for item in build_sequence:
+                if item == 'l':
+                    with os_utils.ChangedDirectory(self.sheet_info['tex_root']):
+                        latex_count += 1
+                        logger.info('Latex run #%s', latex_count)
+                        subprocess.check_call(latex_command, stdout=FNULL)
+                elif item == 'b':
+                    with os_utils.ChangedDirectory(build_dir):
+                        bibtex_count += 1
+                        logger.info('Bibtex run #%s', bibtex_count)
+                        status = subprocess.call(bibtex_command, stdout=FNULL)
+                    if status != 0:
+                        logger.warning('Bibtex command exited with error. Status %s', status)
+                else:
+                    logger.warning('Ignoring unsupported build sequence character "%s"', item)
+
+                '''with os_utils.ChangedDirectory(build_dir):
+                    logger.info('Bibtex')
+                    status = subprocess.call(bibtex_command, stdout=FNULL)
+                if status != 0:
+                    logger.warning('Bibtex command exited with error. Status %s', status)
+                with os_utils.ChangedDirectory(self.sheet_info['tex_root']):
+                    logger.info('Latex: second run')
+                    subprocess.check_call(latex_command, stdout=FNULL)
+                    logger.info('Latex: third run')
+                    subprocess.check_call(latex_command, stdout=FNULL)'''
 
         except subprocess.CalledProcessError as ex:
             logger.error('Error during compilation of latex document. Exit status: %s', ex.returncode)
@@ -360,6 +389,7 @@ class ExerciseSheet:
             raise ex
 
         if clean_after_build:
+            logger.info('Cleaning up.')
             self.clear_dir(compile_name, except_pdf=True)
 
     def clear_dir(self, compile_name, except_pdf=False):

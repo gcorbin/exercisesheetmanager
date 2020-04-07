@@ -25,7 +25,8 @@ if __name__ == '__main__':
     parser.add_argument('sheetinfo', type=str,
                         help='.ini file containing sheet information')
     parser.add_argument('-cc', '--course-config', help='read in course config file', type=str, default='course.ini')
-    parser.add_argument('-e', '--build-exercise', action='store_true')
+    parser.add_argument('-e', '--build-exercise', action='store_true', help='If none of the options "-e", "-s" or "-a"'
+                                                                            'is given, "-e" is the default.')
     parser.add_argument('-s', '--build-solution', action='store_true')
     parser.add_argument('-a', '--build-annotation', action='store_true')
 
@@ -34,8 +35,21 @@ if __name__ == '__main__':
                                  help='removes files created during building LaTex. Only pdf files remain.')
     clean_or_export.add_argument('-x', '--export', type=str, default=None,
                                  help='Export everything into the given folder')
+
+    build_sequence_group = parser.add_mutually_exclusive_group()
+    build_sequence_group.add_argument('-b', '--build-sequence', type=str, default=None,
+                                      help='The order in which latex("l") and bibtex("b") are called.')
+    build_sequence_group.add_argument('-f', '--full', action='store_true', help='Equivalent to "-b lbll"')
+    build_sequence_group.add_argument('-q', '--quick', action='store_true', help='Equivalent to "-b l"')
+    build_sequence_group.add_argument('-n', '--no-build', action='store_true',
+                                      help='Do not build anything. Equivalent to "-b". '
+                                           'In combination with the "-c" option this is useful for cleaning up ' 
+                                           'auxiliary files from a previous run')
     args = parser.parse_args()
-    
+    if not args.build_exercise and not args.build_solution and not args.build_annotation:
+        args.build_exercise = True
+    build_sequence = esm.make_build_sequence(args)
+
     try:
         sheet_info, exercises_info = esm.load_sheet_and_exercise_info(args.course_config, args.sheetinfo)
         exercise_list = esm.make_exercise_list(sheet_info, exercises_info)
@@ -55,13 +69,13 @@ if __name__ == '__main__':
 
         if args.build_exercise:
             compile_name = sheet.render_latex_template(mode='exercise')
-            sheet.build_latex_document(compile_name, args.clean_after_build)
+            sheet.build_latex_document(compile_name, build_sequence, args.clean_after_build)
         if args.build_solution:
             compile_name = sheet.render_latex_template(mode='solution')
-            sheet.build_latex_document(compile_name, args.clean_after_build)
+            sheet.build_latex_document(compile_name, build_sequence, args.clean_after_build)
         if args.build_annotation:
             compile_name = sheet.render_latex_template(mode='annotation')
-            sheet.build_latex_document(compile_name, args.clean_after_build)
+            sheet.build_latex_document(compile_name, build_sequence, args.clean_after_build)
 
         logger.info('Creation of %s successfull', sheet_info['compilename'])
     except Exception as ex:
