@@ -81,6 +81,7 @@
 \RequirePackage{listings}
 \RequirePackage{xifthen}
 \RequirePackage{verbatim} % for the macros \comment und \endcomment
+\RequirePackage[]{datetime}
 
 \newif\ifenglish
 \englishtrue %Default: english
@@ -99,6 +100,12 @@
 
 \ProcessOptions\relax
 
+\newtimeformat{colontime}{\twodigit{\THEHOUR}:\twodigit{\THEMINUTE}}
+\settimeformat{colontime}
+\renewcommand{\dateseparator}{.}
+
+
+
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % DISPLAY Names
 \newcommand{\esm@dispsheet}{\esmsheetnumber}
@@ -108,6 +115,9 @@
 \newcommand{\esm@dispannotation}{Punktevergabe}
 \newcommand{\esm@disppage}{Seite}
 \newcommand{\esm@dispduedate}{Abgabe bis}
+\newcommand{\esm@dispreleasedate}{Herausgegeben}
+\newcommand{\esm@dispcompiletime}{Version}
+
 
 \ifenglish
 \renewcommand{\esm@dispsheet}{Sheet}
@@ -117,6 +127,8 @@
 \renewcommand{\esm@dispannotation}{Grading}
 \renewcommand{\esm@disppage}{Page}
 \renewcommand{\esm@dispduedate}{Due date}
+\renewcommand{\esm@dispreleasedate}{Released}
+\renewcommand{\esm@dispcompiletime}{Version}
 \fi
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
@@ -138,7 +150,10 @@
 \newcommand{\esm@setheaderfooter}{
 	\ihead{\esm@thelecture\\ \esm@dispsheet{} \theesmsheetnumber}
 	\ifoot{\esm@thelecturer}
-	\ohead{\esm@thesemester, \esm@thereleasedate\\ \esm@disppage \pagemark /\pageref{LastPage}}
+	\ohead{%
+		\esm@dispreleasedate: \esm@thesemester, \esm@thereleasedate\\%
+		\esm@dispcompiletime: \ddmmyydate\today, \currenttime\\%
+		\esm@disppage \pagemark /\pageref{LastPage}}
 	\ofoot{
 		\begin{tabular}{l}
 			\esm@dispduedate{}:\\
