@@ -20,9 +20,10 @@ def make_build_sequence(args):
         build_sequence = 'lbll'
     elif args.no_build:
         build_sequence = ''
-    else:
-        args.quick = True
+    elif args.quick: 
         build_sequence = 'l'
+    else: 
+        build_sequence = 'll' # default build sequence is latex-latex to correctly generate page numbers on the sheet 
     return build_sequence
 
 
