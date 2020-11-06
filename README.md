@@ -9,11 +9,17 @@
 
 ## Benutzung
 * Im Ordner des aktuellen Semesters, z.B. EWP/WS1920/ einen Symlink zum sheet manager erstellen:
-   ln -s ../../../exercisesheetmanager/wrapper/create_sheet.py create_sheet.py
+   *ln -s ../../../exercisesheetmanager/wrapper/create_sheet.py create_sheet.py*
 * Dann in diesem Ordner z.B. python create_sheet.py sheet1.ini ausführen
 * Flags:
     * -e (--exercise): Erstellt das Übungsblatt für die Studierenden
     * -s (--solution): Erstellt das Übungsblatt mit Lösung (für die Studierenden)
     * -a (--annotation): Erstellt das Übungsblatt mit Lösung und Hinweisen zur Punktevergabe (für Übungsleitende)
 * Die Punkteverteilung kann für jedes Blatt und jede Aufgabe angegeben werden. Dazu muss im aktuellen Ordner z.B. die Datei sheet5_ex3.tex liegen.
+
+## Benötigte Software
+* Python 3.8
+    * Pythonmodul Jinja2   
+
+Erzeugung einer Anacondaumgebung mit allen Anforderungen: *conda env create -f exercisesheetmanager.yml*
 
